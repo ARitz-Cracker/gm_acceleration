@@ -1,7 +1,7 @@
 
-surface.CreateFont( "LaserWarsDefault", {
-	font = "Arial",
-	size = 32,
+surface.CreateFont( "AccelerationBig", {
+	font = "Permanent Marker",
+	size = 48,
 	weight = 500,
 	blursize = 0,
 	scanlines = 0,
@@ -16,36 +16,3 @@ surface.CreateFont( "LaserWarsDefault", {
 	outline = false,
 } )
 
-surface.CreateFont( "LaserWarsDigital", {
-	font = "Transponder AOE",
-	size = 32,
-	weight = 500,
-	blursize = 0,
-	scanlines = 0,
-	antialias = true,
-	underline = false,
-	italic = false,
-	strikeout = false,
-	symbol = false,
-	rotary = false,
-	shadow = false,
-	additive = false,
-	outline = false,
-} )
-surface.CreateFont( "LaserWarsDigitalBack", {
-	font = "Transponder Grid AOE",
-	size = 32,
-	weight = 500,
-	blursize = 0,
-	scanlines = 0,
-	antialias = true,
-	underline = false,
-	italic = false,
-	strikeout = false,
-	symbol = false,
-	rotary = false,
-	shadow = false,
-	additive = false,
-	outline = false,
-} )
-	
