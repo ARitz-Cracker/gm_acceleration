@@ -1,0 +1,22 @@
+"gm_acceleration"
+{
+	"base"		"sandbox"
+	"title"		"Acceleration"
+	"maps"		"^car_"
+	"menusystem"	"1"
+	"workshopid"	""
+
+	"settings"
+	{
+		1
+		{
+			"name"		"car_test"
+			"text"		"Something"
+			"help"		"A test setting"
+			"type"		"numeric"
+			"default"	"1"
+		}
+
+	}
+
+}
