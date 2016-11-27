@@ -69,7 +69,7 @@ function SWEP:PrimaryAttack()
 	local ragdoll = ents.Create( "prop_ragdoll" ) --Thanks Ulyssus for showing me how to mimic the ulx ragdoll command.
 	ragdoll:SetPos( ply:GetPos() )
 	ragdoll:SetModel( ply:GetModel() )
-	ragdoll:SetAngles(Angle(90,ply:GetAngles().y,0))
+	ragdoll:SetAngles(Angle(0,ply:GetAngles().y,0))
 	ragdoll:Spawn()
 	ragdoll:Activate()
 	ragdoll.IsChuteDoll=true
@@ -82,8 +82,12 @@ function SWEP:PrimaryAttack()
 	end)
 	
 	local balloons = {}
-	timer.Simple(0.2,function()
-		if not IsValid(ragdoll) then return end
+	local bonepos = 1
+	if math.random() > 0.9 then
+		bonepos = 13
+	end
+	--timer.Simple(0.2,function()
+	--	if not IsValid(ragdoll) then return end
 		for i=1,5 do
 			local balloon = ents.Create( "gmod_balloon" )
 			if ( IsValid( balloon ) ) then 
@@ -91,16 +95,17 @@ function SWEP:PrimaryAttack()
 				balloon:SetModel(stuff.model)
 				balloon:SetSkin(stuff.skin or 0)
 				balloon:SetColor( Color( math.random(0,255), math.random(0,255), math.random(0,255), 255 ) )
-				balloon:SetPos(ragdoll:GetPos())
+				balloon:SetPos(ragdoll:GetPos()+Vector(0,i*14 - 42,10))
 				balloon:Spawn()
-				balloon:SetForce( 100 )
+				balloon:SetForce( 125 )
 				balloon:SetPlayer( ply )
-				constraint.Rope( ragdoll, balloon, 1, 0, vector_origin, vector_origin, 50, 0, 0, 1, "cable/rope", false )
+				balloon:SetOwner(ply)
+				constraint.Rope( ragdoll, balloon, bonepos, 0, vector_origin, vector_origin, 60, 0, 0, 1, "cable/rope", false )
 				table.insert(balloons,balloon)
 			end
 		end
 		ply.Chutes = balloons
-	end)
+	--end)
 
 	
 	--ragdoll:SetColor(Color(colvec.x*255,colvec.y*255,colvec.z*255,255))
@@ -114,6 +119,9 @@ function SWEP:PrimaryAttack()
 		curammo[v] = ply:GetAmmoCount(v)
 	end
 	ply.CurChuteAmmo=curammo
+	ply.ChuteHealth = ply:Health()
+	ply.ChuteArmor = ply:Armor()
+	
 	ply:SetParent( ragdoll )
 	ply:StripWeapons()
 	ply:Spectate( OBS_MODE_CHASE )
@@ -154,6 +162,7 @@ hook.Add("PlayerDeath","ARCParachute PreventGlitches",function(ply,wep,killer)
 		ply.ChuteRagdoll = nil 
 		if ply.Chutes then
 			for k,v in ipairs(ply.Chutes) do
+				if !IsValid(v) then return end
 				v:Remove()
 			end
 		end
@@ -172,6 +181,7 @@ hook.Add("PlayerDisconnected","ARCParachute Remove",function(ply)
 		ply.ChuteRagdoll = nil
 		if ply.Chutes then
 			for k,v in ipairs(ply.Chutes) do
+				if !IsValid(v) then return end
 				v:Remove()
 			end
 		end
@@ -212,7 +222,11 @@ hook.Add("KeyPress","ARCParachute Remove",function(ply,key)
 			for k,v in pairs(ply.CurChuteAmmo) do
 				ply:SetAmmo( v, k ) 
 			end
-			
+			ply:SelectWeapon("weapon_arc_parachute")
+			ply:SetHealth(ply.ChuteHealth)
+			ply:SetArmor(ply.ChuteArmor)
+			ply.ChuteHealth = nil
+			ply.ChuteArmor = nil
 			--[[
 			local chutelocal, chutelocal2 = chute:GetRight()*40+chute:GetLocalPos(), chute:GetRight()*-40+chute:GetLocalPos()
 			constraint.Rope( ply.chuteragdoll, chute, 7, 0, Vector(0,0,0), Vector(100,0,-20), 200, 0, 0, 2, "cable/rope", 0 )
