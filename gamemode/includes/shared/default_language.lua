@@ -10,7 +10,17 @@
  
 --------------------------------------------------------------------------------------]]--
 
+Car.MsgsSource = {"tool"}
 Car.Msgs = Car.Msgs or {}
 Car.Msgs.HudMsg = Car.Msgs.HudMsg or {}
-
 Car.Msgs.HudMsg.Transform = "PRESS [JUMP] TO TRANSFORM"
+
+Car.Msgs.PitstopMsgs = Car.Msgs.PitstopMsgs or {}
+Car.Msgs.PitstopMsgs.NotInPitstop = "You are not in your pitstop"
+Car.Msgs.PitstopMsgs.ToolNotInPitstop = "You cannot use a tool outside your pitstop"
+Car.Msgs.PitstopMsgs.ToolNotAcceleration = "You cannot use a tool outside your pitstop"
+
+Car.Msgs.tool = Car.Msgs.tool or {}
+Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}
+Car.Msgs.tool.snappy.ent_selected = "Selected %ENT% as reference entity"
+Car.Msgs.tool.snappy.ent_reset = "Cleared reference entity"

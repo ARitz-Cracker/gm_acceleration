@@ -7,6 +7,7 @@ ENT.Category 		= "Acceleration"
 ENT.Contact    		= ""
 ENT.Purpose 		= ""
 ENT.Instructions 	= ""
+ENT.RenderGroup 	= RENDERGROUP_BOTH
 
 ENT.Spawnable = true;
 ENT.AdminOnly = false

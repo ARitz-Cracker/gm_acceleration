@@ -167,7 +167,7 @@ end
 function ENT:DoDirectionEffect() -- Copied from gmod_wheel
 	local effectdata = EffectData()
 
-		effectdata:SetOrigin( self.phys:LocalToWorldVector((self:OBBMaxs()-self:OBBMins())*self.WheelCutAxis*0.55) )
+		effectdata:SetOrigin( (self:OBBMaxs()-self:OBBMins())*self.WheelCutAxis*0.55 )
 		effectdata:SetEntity( self.Entity )
 		effectdata:SetScale( self.Direction )
 

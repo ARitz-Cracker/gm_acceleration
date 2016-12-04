@@ -6,7 +6,7 @@ function ENT:Initialize()
 	self.LastPos = vector_origin
 	self:UpdatePoints()
 	self.Barrier = true
-	net.Start("sent_arc_pitstop")
+	net.Start("car_pit_enable")
 	net.WriteEntity(self)
 	net.SendToServer()
 end
@@ -193,6 +193,10 @@ end
 function ENT:Draw()
 	--self:UpdatePoints() -- TODO: Only update points if entity has been moved
 	self:DrawModel()
+	
+end
+
+function ENT:DrawTranslucent()
 	if not self.Barrier then return end
 	render.SetMaterial( forceFieldTexture )
 	for k,v in ipairs(self.Points) do
@@ -223,5 +227,6 @@ net.Receive("car_pit_enable",function()
 	local ent = net.ReadEntity()
 	if IsValid(ent) then
 		ent:EnableBarrier(net.ReadBool())
+		ent.Player = net.ReadEntity()
 	end
 end)
