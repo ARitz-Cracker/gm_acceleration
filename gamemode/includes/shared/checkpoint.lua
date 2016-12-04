@@ -11,13 +11,14 @@
 --------------------------------------------------------------------------------------]]--
 
 Car.Checkpoints = {}
+Car.CheckpointThreshold = 2.5
 
 -- Should be replaced with something more efficient
 function Car.CheckpointFindNearestExcludeSelf( eCheckpoint, eAll )
 
-	if ( eCheckpoint.PairCheckpoint ) then
-		return eCheckpoint.PairCheckpoint
-	end
+	--if ( eCheckpoint.PairCheckpoint ) then
+	--	return eCheckpoint.PairCheckpoint
+	--end
 
 	local vCheckpointPos = eCheckpoint:GetPos();
 	local eNearest, eNearestDistance = NULL, math.huge
@@ -72,18 +73,30 @@ function Car.PlayerPassedThroughCheckpointLogic( Pl )
 		Pl.CheckpointAnglesCalculations = {}
 	end
 	
-	local new = {}
+	--local new = {}
 	
-	print( "printing table")
-	PrintTable( Car.Checkpoints )
+	--print( "printing table")
+	--PrintTable( Car.Checkpoints )
 	
-	for i=1, 2 do
+	--[[--for i=1, 2 do
 		local vPlayerToCheckpoint = Pl:GetPos() - Car.Checkpoints[Pl.NextCheckpoint][i]:GetPos();
 		local vCheckpointToCheckpoint = Car.Checkpoints[Pl.NextCheckpoint][i]:GetPos() - Car.Checkpoints[Pl.NextCheckpoint][2 - i + 1]:GetPos()
 		new[i] = math.acos ( (vCheckpointToCheckpoint:Dot(vPlayerToCheckpoint)) / (vPlayerToCheckpoint:Length() * vCheckpointToCheckpoint:Length() ) )
-	end
+	end--]]--
+	
+	local vPlayerToCheckpoint1 = Car.Checkpoints[Pl.NextCheckpoint][1]:GetPos() -Pl:GetPos();
+	local vPlayerToCheckpoint2 = Car.Checkpoints[Pl.NextCheckpoint][2]:GetPos() -Pl:GetPos();
+	local AngleDifference = math.acos ( (vPlayerToCheckpoint1:Dot(vPlayerToCheckpoint2)) / (vPlayerToCheckpoint1:Length() * vPlayerToCheckpoint2:Length() ) )
+	
+	print( math.deg( AngleDifference ) )
 	
 	-- don't know what values I will be checking
-	PrintTable( new )
+	--PrintTable( new )
+	
+	if ( AngleDifference > Car.CheckpointThreshold ) then
+	
+		return true
+		
+	end
 
 end
