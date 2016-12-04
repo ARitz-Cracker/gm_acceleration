@@ -17,8 +17,8 @@ function ENT:UpdatePoints()
 	end
 
 	self.Points = {}
-	local mins = self:OBBMins()+self.AddMins
-	local maxs = self:OBBMaxs()+self.AddMaxs
+	local mins = self:OBBMins()--+self.AddMins
+	local maxs = self:OBBMaxs()--+self.AddMaxs
 	self:SetRenderBounds( mins, maxs)
 	local back_left_down = self:LocalToWorld(mins)
 	local back_right_down = self:LocalToWorld(Vector(mins.x,maxs.y,mins.z))
