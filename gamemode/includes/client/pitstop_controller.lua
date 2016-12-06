@@ -18,17 +18,17 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 			return
 		end
 		local mat = vgui.Create( "AngleSelect", window )
-		mat:SetMaterial( "gm_acceleration/hud/angle_1" )
+		mat:SetMaterial( "gm_acceleration/hud/angle_3" )
 		mat:SetPos( 40, 30 )
 		mat:SetSize( 96, 96 )
 
 		local mat2 = vgui.Create( "AngleSelect", window )
-		mat2:SetMaterial( "gm_acceleration/hud/angle_2" )
+		mat2:SetMaterial( "gm_acceleration/hud/angle_1" )
 		mat2:SetPos( 40, 30+106 )
 		mat2:SetSize( 96, 96 )
 		
 		local mat3 = vgui.Create( "AngleSelect", window )
-		mat3:SetMaterial( "gm_acceleration/hud/angle_3" )
+		mat3:SetMaterial( "gm_acceleration/hud/angle_2" )
 		mat3:SetPos( 40, 30+106+106 )
 		mat3:SetSize( 96, 96 )
 		

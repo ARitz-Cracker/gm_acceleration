@@ -8,6 +8,8 @@ include('shared.lua')
 ENT.ARitzDDProtected = true
 
 util.AddNetworkString("car_pit_enable")
+util.AddNetworkString("car_pit_angle")
+util.AddNetworkString("car_pit_pos")
 function ENT:Initialize()
 	self:SetModel( "models/hunter/plates/plate8x8.mdl" )
 
@@ -85,6 +87,29 @@ function ENT:Initialize()
 	self.Barrier = true
 	self.IsPitstop = true
 	self.Whitelist = {}
+	
+	--self.LifterPos = self:OBBCenter() - Vector(0,0,150)
+	self.LifterPos = self:OBBCenter() - Vector(0,0,100)
+	self.LifterAng = angle_zero
+	self.LifterPosLast = self.LifterPos
+	self.LifterAngLast = self.LifterAng
+	self.LifterPosStart = 0
+	self.LifterPosEnd = 0
+	self.LifterAngStart = 0
+	self.LifterAngEnd = 0
+	
+	self.Lifter = ents.Create ("prop_physics")
+	self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
+	self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
+	self.Lifter:SetModel("models/props_vehicles/car002a_physics.mdl")
+	self.Lifter:Spawn()
+	self.Lifter:GetPhysicsObject():EnableMotion( false ) 
+	
+	--ambient/machines/machine3.wav
+	--vehicles/crane/crane_extend_stop.wav 
+	
+	--plats/crane/vertical_start.wav
+	--plats/crane/vertical_stop.wav
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then
@@ -99,8 +124,6 @@ hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 			return true -- This is probably a bad idea. But nothing should come through the field anyway
 		end
 	end
-	MsgN("ent1 = "..tostring(ent1))
-	MsgN("ent2 = "..tostring(ent2))
 end)
 net.Receive("car_pit_enable",function(msglen,ply)
 	local ent = net.ReadEntity()
@@ -109,6 +132,12 @@ net.Receive("car_pit_enable",function(msglen,ply)
 	net.WriteBool(ent.Barrier)
 	net.WriteEntity(ent.Player)
 	net.Send(ply)
+end)
+net.Receive("car_pit_angle",function(msglen,ply)
+	local ent = Car.GetPitstop(ply)
+	if IsValid(ent) then
+		ent:SetLifterAngles(net.ReadAngles())
+	end
 end)
 function ENT:SpawnFunction( ply, tr )
  	if ( !tr.Hit ) then return end
@@ -121,10 +150,34 @@ function ENT:SpawnFunction( ply, tr )
 end
 
 function ENT:Think()
-	if self.Player then
+	local changetime
+	if self.LifterAngEnd > CurTime() then
+		local a = self:LocalToWorldAngles(LerpAngle( ARCLib.BetweenNumberScale(self.LifterAngStart,CurTime(),self.LifterAngEnd), self.LifterAngLast, self.LifterAng ))
+		self.Lifter:SetAngles(a)
+		MsgN(a)
+		self:NextThink(CurTime())
+		changetime = true
+	elseif (self.LifterAngSound) then
+		self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
+		self.LifterAngSound:Stop()
+		self.LifterAngSound = nil
+		self:EmitSound("vehicles/crane/crane_extend_stop.wav")
+	end
 	
+	return changetime
+end
+
+function ENT:SetLifterAngles(ang)
+	if ang != self.LifterAng then
+		self.LifterAngLast = self:WorldToLocalAngles(self.Lifter:GetAngles())
+		self.LifterAng = ang
+		self.LifterAngStart = CurTime()
+		self.LifterAngEnd = CurTime() + 1;
+		self.LifterAngSound = CreateSound( self, "ambient/machines/machine3.wav")
+		self.LifterAngSound:Play()
 	end
 end
+
 
 function ENT:EnableBarrier(doit)
 	net.Start("car_pit_enable")
@@ -146,7 +199,9 @@ function ENT:PhysicsCollide( data, phys )
 	sound.Play( "pitstop/impact.wav", data.HitPos, 80, math.random(85,135), math.Clamp(data.Speed/1200,0,1))
 end
 function ENT:OnRemove()
-
+	if IsValid(self.Lifter) then
+		self.Lifter:Remove()
+	end
 end
 
 function ENT:Use(activator, caller, type, value)
