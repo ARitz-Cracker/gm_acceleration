@@ -10,25 +10,46 @@
  
 --------------------------------------------------------------------------------------]]--
 
+AddCSLuaFile("cl_init.lua")
+AddCSLuaFile("shared.lua")
 include('shared.lua')
 
 function ENT:Initialize()
 
+	self:SetModel( "models/props/cs_office/tv_plasma.mdl" )
+	self:PhysicsInit( SOLID_VPHYSICS )
+	self:SetMoveType( MOVETYPE_VPHYSICS )
+	self:SetSolid( SOLID_VPHYSICS )
+	self:SetUseType( SIMPLE_USE )
+	self.phys = self:GetPhysicsObject()
+	if self.phys:IsValid() then
+		self.phys:Wake()
+	end
+end
+
+function ENT:SpawnFunction( ply, tr )
+
+ 	if ( !tr.Hit ) then return end
+	local blarg = ents.Create ("sent_arc_pitstop_signup")
+	blarg:SetPos(tr.HitPos + tr.HitNormal * 40)
+	blarg:Spawn()
+	blarg:Activate()
+	return blarg
+	
 end
 
 function ENT:Think()
 
 end
-local color_blue = Color(0,0,255,255)
-local color_red = Color(255,0,0,255)
-function ENT:Draw()
-	self:DrawModel()
-	local ang = (LocalPlayer():GetPos()-self:GetPos()):Angle()
-	render.DrawLine( self:GetPos(), self:GetPos() + ang:Forward()*10, color_white, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,90,0) ):Forward()*10, color_blue, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:GetAngles():Forward()*10, color_red, false ) 
+
+function ENT:PhysicsCollide( data, phys )
+
 end
 
 function ENT:OnRemove()
+
+end
+
+function ENT:Use(activator, caller, type, value)
 
 end

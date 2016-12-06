@@ -16,11 +16,11 @@ include('shared.lua')
 
 function ENT:Initialize()
 
-	self:SetModel( "models/xeon133/racewheelskinny/race-wheel-40_s.mdl" )
+	self:SetModel( "models/props_trainstation/trainstation_post001.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
-
+	
 end
 
 function ENT:SpawnFunction( ply, tr )
@@ -34,12 +34,22 @@ function ENT:SpawnFunction( ply, tr )
 	
 end
 
-function ENT:Think()
-
+function ENT:CompareAng(ang,flip)
+	if flip then
+		return ang <= 90
+	else
+		return ang > 90
+	end
 end
 
-function ENT:PhysicsCollide( data, phys )
-
+function ENT:Think()
+	local ang = self:WorldToLocalAngles((Entity(1):GetPos()-self:GetPos()):Angle()).y --TODO: Currently the checkpoints have infinite hight. Check if pitch < 0 to make sure people are not underneith? (That would also assume that the origin is at the bottom of the entity)
+	if self.LastAng then
+		if self:CompareAng(ang,not self.IsSlave) and self:CompareAng(self.LastAng,self.IsSlave) then
+			self:EmitSound("buttons/blip1.wav")
+		end
+	end
+	self.LastAng = ang
 end
 
 function ENT:OnRemove()

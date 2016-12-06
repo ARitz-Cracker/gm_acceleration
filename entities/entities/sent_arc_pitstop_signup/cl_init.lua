@@ -12,6 +12,12 @@
 
 include('shared.lua')
 
+local screenPos = Vector(6.1,-28,35.3)
+local screenAng = Angle(0,90,90)
+local screenResX = 656
+local screenResY = 384
+local screenResXHalf = screenResX/2
+local screenResYHalf = screenResY/2
 function ENT:Initialize()
 
 end
@@ -19,14 +25,15 @@ end
 function ENT:Think()
 
 end
-local color_blue = Color(0,0,255,255)
-local color_red = Color(255,0,0,255)
+
 function ENT:Draw()
 	self:DrawModel()
-	local ang = (LocalPlayer():GetPos()-self:GetPos()):Angle()
-	render.DrawLine( self:GetPos(), self:GetPos() + ang:Forward()*10, color_white, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,90,0) ):Forward()*10, color_blue, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:GetAngles():Forward()*10, color_red, false ) 
+	cam.Start3D2D( self:LocalToWorld(screenPos), self:LocalToWorldAngles(screenAng), 0.08562 )
+		surface.SetDrawColor( color_black )
+		surface.DrawRect( 0, 0, screenResX, screenResY )
+		draw.SimpleText( "This garage is owned by:", "Trebuchet24", screenResXHalf, screenResYHalf-2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_BOTTOM) 
+		draw.SimpleText( "ⒶⓇⓘⓣⓩ Ⓒⓡⓐⓒⓚⓔⓡ ⓘⓢ ⓣⓔⓢⓣⓘⓝⓖ ⓢⓞⓜⓔⓣⓗⓘⓝⓖ", "Trebuchet24", screenResXHalf, screenResYHalf+2, color_white, TEXT_ALIGN_CENTER, TEXT_ALIGN_TOP) 
+	cam.End3D2D()
 end
 
 function ENT:OnRemove()

@@ -42,6 +42,28 @@ hook.Add("CanTool","Acceleration ToolsOnlyInPitstop",function( ply, tr, tool )
 		return false
 	end
 end)
+local function checkFreeze(ply,ent)
+	local inPitstop = true
+	local pitstop = Car.GetPitstop(ply)
+	if not IsValid(pitstop) then
+		inPitstop = false
+	end
+	if inPitstop and not ply:GetPos():WithinAABox( pitstop:LocalToWorld(pitstop:OBBMins()), pitstop:LocalToWorld(pitstop:OBBMaxs())) then
+		inPitstop = false
+	end
+	if inPitstop and not ent:GetPos():WithinAABox( pitstop:LocalToWorld(pitstop:OBBMins()), pitstop:LocalToWorld(pitstop:OBBMaxs())) then
+		inPitstop = false
+	end
+	if not inPitstop then
+		return false
+	end
+end
+
+hook.Add( "PhysgunPickup", "PhysOnlyInPitstop", checkFreeze)
+
+hook.Add( "OnPhysgunFreeze", "PhysOnlyInPitstop", function(weapon, phys, ent, ply)
+	return checkFreeze(ply,ent)
+end)
 
 if SERVER then
 

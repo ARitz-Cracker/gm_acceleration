@@ -15,10 +15,21 @@ Car.Msgs = Car.Msgs or {}
 Car.Msgs.HudMsg = Car.Msgs.HudMsg or {}
 Car.Msgs.HudMsg.Transform = "PRESS [JUMP] TO TRANSFORM"
 
+Car.Msgs.Generic = Car.Msgs.Generic or {}
+Car.Msgs.Generic.OK = "OK"
+Car.Msgs.Generic.Cancel = "Cancel"
+Car.Msgs.Generic.Yes = "Yes"
+Car.Msgs.Generic.No = "No"
+Car.Msgs.Generic.Abort = "Abort"
+Car.Msgs.Generic.Retry = "Retry"
+Car.Msgs.Generic.Ignore = "Ignore"
+
+
 Car.Msgs.PitstopMsgs = Car.Msgs.PitstopMsgs or {}
-Car.Msgs.PitstopMsgs.NotInPitstop = "You are not in your pitstop"
-Car.Msgs.PitstopMsgs.ToolNotInPitstop = "You cannot use a tool outside your pitstop"
-Car.Msgs.PitstopMsgs.ToolNotAcceleration = "You cannot use a tool outside your pitstop"
+Car.Msgs.PitstopMsgs.NoPitstop = "You do not have a garage"
+Car.Msgs.PitstopMsgs.NotInPitstop = "You are not in your garage"
+Car.Msgs.PitstopMsgs.ToolNotInPitstop = "You cannot use a tool outside your garage"
+Car.Msgs.PitstopMsgs.ToolNotAcceleration = "You can only use the remover or tools from the \"Acceleration\" category"
 
 Car.Msgs.tool = Car.Msgs.tool or {}
 Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}
