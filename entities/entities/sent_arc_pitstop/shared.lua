@@ -11,6 +11,7 @@ ENT.RenderGroup 	= RENDERGROUP_BOTH
 
 ENT.Spawnable = true;
 ENT.AdminOnly = false
+ENT.CarFrozenEnt = true
 
 ENT.AddMaxs = Vector(100,100,350)
 ENT.AddMins = Vector(-100,-100,0)

@@ -194,8 +194,17 @@ function ENT:Draw()
 	--self:UpdatePoints() -- TODO: Only update points if entity has been moved
 	self:DrawModel()
 	
+	if IsValid(self.Lifter) then
+		local linepoint = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*100
+		local linepoint2 = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*70 + self.Lifter:GetAngles():Right()*10
+		local linepoint3 = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*70 + self.Lifter:GetAngles():Right()*-10
+		render.DrawLine( self.Lifter:GetPos(), linepoint, color_red, true )
+		render.DrawLine( linepoint, linepoint2, color_red, true )	
+		render.DrawLine( linepoint, linepoint3, color_red, true )			
+		render.DrawWireframeBox( self.Lifter:GetPos(),self.Lifter:GetAngles(), Vector(280/-2,190/-2,0), Vector(280/2,190/2,120), color_red, true ) 
+	end
 end
-
+local color_red = Color(255,0,0,255)
 function ENT:DrawTranslucent()
 	if not self.Barrier then return end
 	render.SetMaterial( forceFieldTexture )
@@ -221,6 +230,7 @@ function ENT:DrawTranslucent()
 		
 		mesh.End() -- Finish writing the mesh and draw it
 	end
+
 end
 
 net.Receive("car_pit_enable",function()
@@ -228,5 +238,6 @@ net.Receive("car_pit_enable",function()
 	if IsValid(ent) then
 		ent:EnableBarrier(net.ReadBool())
 		ent.Player = net.ReadEntity()
+		ent.Lifter = net.ReadEntity()
 	end
 end)

@@ -4,6 +4,7 @@ TOOL.Name = "#tool.snappy.name"
 
 TOOL.ClientConVar[ "snappos" ] = "20"
 TOOL.ClientConVar[ "snapang" ] = "30"
+TOOL.ClientConVar[ "lifter" ] = "0"
 TOOL.ClientConVar[ "persist" ] = "0"
 TOOL.ClientConVar[ "usex" ] = "0"
 TOOL.ClientConVar[ "usey" ] = "0"
@@ -20,7 +21,14 @@ TOOL.Information = {
 function TOOL:LeftClick( trace )
 	if ( not IsValid( trace.Entity ) ) then return false end
 	local ent = trace.Entity
-	Car.SnappySnap(ent, ent, self:GetClientNumber( "snappos" ), self:GetClientNumber( "snapang" ), Entity(self:GetClientNumber( "entity" )), self:GetClientNumber( "usex" ) != 0, self:GetClientNumber( "usey" ) != 0, self:GetClientNumber( "usez" ) != 0)
+	local lifter
+	if self:GetClientNumber( "lifter" ) != 0 then
+		local pit = Car.GetPitstop(self:GetOwner())
+		if IsValid(pit) and IsValid(pit.Lifter) then
+			lifter = pit.Lifter
+		end
+	end
+	Car.SnappySnap(ent, ent, self:GetClientNumber( "snappos" ), self:GetClientNumber( "snapang" ), Entity(self:GetClientNumber( "entity" )), self:GetClientNumber( "usex" ) != 0, self:GetClientNumber( "usey" ) != 0, self:GetClientNumber( "usez" ) != 0,lifter)
 	return true
 
 end
@@ -63,6 +71,7 @@ function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl( "Header", { Description = "#tool.snappy.help" } )
 	CPanel:AddControl( "Slider", { Label = "#tool.snappy.position", Command = "snappy_snappos", Type = "Float", Min = 15, Max = 90, Help = true } )
 	CPanel:AddControl( "Slider", { Label = "#tool.snappy.angle", Command = "snappy_snapang", Type = "Float", Min = 10, Max = 100, Help = true } )
+	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.lifter", Command = "snappy_lifter", Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.persist", Command = "snappy_persist", Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.usex", Command = "snappy_usex", Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.usey", Command = "snappy_usey", Help = true } )

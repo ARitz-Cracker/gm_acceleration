@@ -22,3 +22,4 @@ ENT.Instructions 	= ""
 
 ENT.Spawnable = true;
 ENT.AdminOnly = false
+--ENT.CarFrozenEnt = true

@@ -35,7 +35,9 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		
 		local onValChanged = function(panel,ang)
 			net.Start("car_pit_angle")
-			net.WriteAngle(Angle(mat:GetValue(),mat2:GetValue(),mat3:GetValue()))
+			local p = mat:GetValue()
+			p = (p - 360) * -1
+			net.WriteAngle(Angle(p,mat2:GetValue(),mat3:GetValue()))
 			net.SendToServer()
 		end
 		mat.OnValueChanged = onValChanged
@@ -49,7 +51,7 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		updown:SetValue(0)
 		updown.OnChange = function( self,num )
 			net.Start("car_pit_pos")
-			net.WriteUInt(math.Round((num-1)*-150),8)
+			net.WriteUInt(math.Round((num-1)*-170),8)
 			net.SendToServer()
 		end
 		
@@ -72,12 +74,12 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 
 		local AppList = vgui.Create( "DListView" )
 		AppList:SetMultiSelect( false )
-		AppList:AddColumn( "Application" )
-		AppList:AddColumn( "Size" )
+		AppList:AddColumn( "Question" )
+		AppList:AddColumn( "Answer" )
 
-		AppList:AddLine( "PesterChum", "2mb" )
-		AppList:AddLine( "Lumitorch", "512kb" )
-		AppList:AddLine( "Troj-on", "661kb" )
+		AppList:AddLine( "WorkingYet", "No" )
+		AppList:AddLine( "Why", "Lazyness" )
+		AppList:AddLine( "When", "Sometime" )
 		AppList:SetSize( 300, 100 )	
 		DermaList:AddItem( AppList )						// Add the checkbox to the category
 

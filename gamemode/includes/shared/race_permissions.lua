@@ -43,6 +43,7 @@ hook.Add("CanTool","Acceleration ToolsOnlyInPitstop",function( ply, tr, tool )
 	end
 end)
 local function checkFreeze(ply,ent)
+	if ent.CarFrozenEnt then return false end
 	local inPitstop = true
 	local pitstop = Car.GetPitstop(ply)
 	if not IsValid(pitstop) then
@@ -60,8 +61,11 @@ local function checkFreeze(ply,ent)
 end
 
 hook.Add( "PhysgunPickup", "PhysOnlyInPitstop", checkFreeze)
-
+hook.Add( "CanPlayerUnfreeze", "PhysOnlyInPitstop", checkFreeze)
 hook.Add( "OnPhysgunFreeze", "PhysOnlyInPitstop", function(weapon, phys, ent, ply)
+	return checkFreeze(ply,ent)
+end)
+hook.Add( "CanProperty", "PhysOnlyInPitstop", function(ply, property, ent)
 	return checkFreeze(ply,ent)
 end)
 

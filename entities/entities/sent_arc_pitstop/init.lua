@@ -88,7 +88,7 @@ function ENT:Initialize()
 	self.IsPitstop = true
 	self.Whitelist = {}
 	
-	self.LifterPos = self:OBBCenter() - Vector(0,0,150)
+	self.LifterPos = self:OBBCenter() - Vector(0,0,170)
 	self.LifterAng = angle_zero
 	self.LifterPosLast = self.LifterPos
 	self.LifterAngLast = self.LifterAng
@@ -96,19 +96,22 @@ function ENT:Initialize()
 	self.LifterPosEnd = 0
 	self.LifterAngStart = 0
 	self.LifterAngEnd = 0
-	
-	self.Lifter = ents.Create ("prop_physics")
-	self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
-	self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
-	self.Lifter:SetModel("models/props_vehicles/car002a_physics.mdl")
-	self.Lifter:Spawn()
-	self.Lifter:GetPhysicsObject():EnableMotion( false ) 
-	
+	self.Lifter = NULL
+	self:CreateLifter()
 	--ambient/machines/machine3.wav
 	--vehicles/crane/crane_extend_stop.wav 
 	
 	--plats/crane/vertical_start.wav
 	--plats/crane/vertical_stop.wav
+end
+function ENT:CreateLifter()
+	self.Lifter = ents.Create ("prop_physics")
+	self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
+	self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
+	self.Lifter:SetModel("models/props_phx/construct/metal_plate1.mdl")
+	self.Lifter:Spawn()
+	self.Lifter:GetPhysicsObject():EnableMotion( false ) 
+	self.Lifter.CarFrozenEnt = true
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then
@@ -130,6 +133,7 @@ net.Receive("car_pit_enable",function(msglen,ply)
 	net.WriteEntity(ent)
 	net.WriteBool(ent.Barrier)
 	net.WriteEntity(ent.Player)
+	net.WriteEntity(ent.Lifter)
 	net.Send(ply)
 end)
 net.Receive("car_pit_angle",function(msglen,ply)
@@ -141,7 +145,7 @@ end)
 net.Receive("car_pit_pos",function(msglen,ply)
 	local ent = Car.GetPitstop(ply)
 	if IsValid(ent) then
-		ent:SetLifterPos(ent:OBBCenter()-Vector(0,0,math.Clamp(net.ReadUInt(8),0,150)))
+		ent:SetLifterPos(ent:OBBCenter()-Vector(0,0,math.Clamp(net.ReadUInt(8),0,170)))
 	end
 end)
 function ENT:SpawnFunction( ply, tr )
@@ -156,35 +160,36 @@ end
 
 function ENT:Think()
 	local changetime
-	if self.LifterAngEnd > CurTime() then
-		local a = self:LocalToWorldAngles(LerpAngle( ARCLib.BetweenNumberScale(self.LifterAngStart,CurTime(),self.LifterAngEnd), self.LifterAngLast, self.LifterAng ))
-		self.Lifter:SetAngles(a)
-		self:NextThink(CurTime())
-		changetime = true
-	elseif (self.LifterAngSound) then
-		self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
-		self.LifterAngSound:Stop()
-		self.LifterAngSound = nil
-		self:EmitSound("vehicles/crane/crane_extend_stop.wav")
+	if IsValid(self.Lifter) then 
+		if self.LifterAngEnd > CurTime() then
+			local a = self:LocalToWorldAngles(LerpAngle( ARCLib.BetweenNumberScale(self.LifterAngStart,CurTime(),self.LifterAngEnd), self.LifterAngLast, self.LifterAng ))
+			self.Lifter:SetAngles(a)
+			self:NextThink(CurTime())
+			changetime = true
+		elseif (self.LifterAngSound) then
+			self.Lifter:SetAngles(self:LocalToWorldAngles(self.LifterAng))
+			self.LifterAngSound:Stop()
+			self.LifterAngSound = nil
+			self:EmitSound("vehicles/crane/crane_extend_stop.wav")
+		end
+		
+		if self.LifterPosEnd > CurTime() then
+			local a = self:LocalToWorld(LerpVector( ARCLib.BetweenNumberScale(self.LifterPosStart,CurTime(),self.LifterPosEnd), self.LifterPosLast, self.LifterPos ))
+			self.Lifter:SetPos(a)
+			self:NextThink(CurTime())
+			changetime = true
+		elseif (self.LifterPosSound) then
+			self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
+			self.LifterPosSound:Stop()
+			self.LifterPosSound = nil
+			self:EmitSound("plats/crane/vertical_stop.wav")
+		end
 	end
-	
-	if self.LifterPosEnd > CurTime() then
-		local a = self:LocalToWorld(LerpVector( ARCLib.BetweenNumberScale(self.LifterPosStart,CurTime(),self.LifterPosEnd), self.LifterPosLast, self.LifterPos ))
-		self.Lifter:SetPos(a)
-		self:NextThink(CurTime())
-		changetime = true
-	elseif (self.LifterPosSound) then
-		self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
-		self.LifterPosSound:Stop()
-		self.LifterPosSound = nil
-		self:EmitSound("plats/crane/vertical_stop.wav")
-	end
-	
 	return changetime
 end
 
 function ENT:SetLifterAngles(ang)
-	if ang != self.LifterAng then
+	if ang != self.LifterAng and IsValid(self.Lifter) then
 		self.LifterAngLast = self:WorldToLocalAngles(self.Lifter:GetAngles())
 		self.LifterAng = ang
 		self.LifterAngStart = CurTime()
@@ -194,7 +199,7 @@ function ENT:SetLifterAngles(ang)
 	end
 end
 function ENT:SetLifterPos(pos)
-	if pos != self.LifterPos then
+	if pos != self.LifterPos and IsValid(self.Lifter) then
 		self.LifterPosLast = self:WorldToLocal(self.Lifter:GetPos())
 		self.LifterPos = pos
 		self.LifterPosStart = CurTime()
@@ -210,6 +215,7 @@ function ENT:EnableBarrier(doit)
 	net.WriteEntity(self)
 	net.WriteBool(doit)
 	net.WriteEntity(self.Player)
+	net.WriteEntity(self.Lifter)
 	net.Broadcast()
 	self.Barrier = doit 
 	self:CollisionRulesChanged()

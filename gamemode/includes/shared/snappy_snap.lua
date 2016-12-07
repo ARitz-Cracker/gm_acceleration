@@ -10,26 +10,48 @@
  
 --------------------------------------------------------------------------------------]]--
 
-function Car.SnappySnap(snapEnt,referenceEnt,snapPos,snapAng,positionEnt,useX,useY,useZ)
-	local entpos = referenceEnt:LocalToWorld(referenceEnt:OBBCenter())
-	local entang = referenceEnt:GetAngles()
+function Car.SnappySnap(snapEnt,referenceEnt,snapPos,snapAng,positionEnt,useX,useY,useZ,relativeEnt)
+	if IsValid(relativeEnt) then --UGH THIS MAKES ME DIE INSIZE
+		local entpos = relativeEnt:WorldToLocal(referenceEnt:LocalToWorld(referenceEnt:OBBCenter()))
+		local entang = relativeEnt:WorldToLocalAngles(referenceEnt:GetAngles())
 
-	local a = Vector(math.Round(entpos.x/snapPos)*snapPos,math.Round(entpos.y/snapPos)*snapPos,math.Round(entpos.z/snapPos)*snapPos)
-	if IsValid(positionEnt) then
-		positionEntPos = positionEnt:LocalToWorld(positionEnt:OBBCenter())
-		if useX then
-			a.x = positionEntPos.x
+		local a = Vector(math.Round(entpos.x/snapPos)*snapPos,math.Round(entpos.y/snapPos)*snapPos,math.Round(entpos.z/snapPos)*snapPos)
+		if IsValid(positionEnt) then
+			positionEntPos = relativeEnt:WorldToLocal(positionEnt:LocalToWorld(positionEnt:OBBCenter()))
+			if useX then
+				a.x = positionEntPos.x
+			end
+			if useY then
+				a.y = positionEntPos.y
+			end
+			if useZ then
+				a.z = positionEntPos.z
+			end
 		end
-		if useY then
-			a.y = positionEntPos.y
+		snapEnt:SetAngles(relativeEnt:LocalToWorldAngles(Angle(math.Round(entang.p/snapAng)*snapAng,math.Round(entang.y/snapAng)*snapAng,math.Round(entang.r/snapAng)*snapAng)))
+		snapEnt:SetPos(relativeEnt:LocalToWorld(a))
+		snapEnt:SetPos(snapEnt:LocalToWorld(referenceEnt:OBBCenter()*-1))
+	else
+		local entpos = referenceEnt:LocalToWorld(referenceEnt:OBBCenter())
+		local entang = referenceEnt:GetAngles()
+
+		local a = Vector(math.Round(entpos.x/snapPos)*snapPos,math.Round(entpos.y/snapPos)*snapPos,math.Round(entpos.z/snapPos)*snapPos)
+		if IsValid(positionEnt) then
+			positionEntPos = positionEnt:LocalToWorld(positionEnt:OBBCenter())
+			if useX then
+				a.x = positionEntPos.x
+			end
+			if useY then
+				a.y = positionEntPos.y
+			end
+			if useZ then
+				a.z = positionEntPos.z
+			end
 		end
-		if useZ then
-			a.z = positionEntPos.z
-		end
+		snapEnt:SetAngles(Angle(math.Round(entang.p/snapAng)*snapAng,math.Round(entang.y/snapAng)*snapAng,math.Round(entang.r/snapAng)*snapAng))
+		snapEnt:SetPos(a)
+		snapEnt:SetPos(snapEnt:LocalToWorld(referenceEnt:OBBCenter()*-1))
 	end
-	snapEnt:SetAngles(Angle(math.Round(entang.p/snapAng)*snapAng,math.Round(entang.y/snapAng)*snapAng,math.Round(entang.r/snapAng)*snapAng))
-	snapEnt:SetPos(a)
-	snapEnt:SetPos(snapEnt:LocalToWorld(referenceEnt:OBBCenter()*-1))
 end
 
 if not CLIENT then return end
@@ -59,16 +81,24 @@ hook.Add("Think","Acceleration Snappy",function()
 	local ent = LocalPlayer():GetEyeTrace().Entity
 	local sanpVar = GetConVar( "snappy_snappos" )
 	local sanpAng = GetConVar( "snappy_snapang" )
+	local sanpLifter = GetConVar( "snappy_lifter" )
 	local sanpPersist = GetConVar( "snappy_persist" )
 	local sanpEnt = GetConVar( "snappy_entity" )
 	local sanpX = GetConVar( "snappy_usex" )
 	local sanpY = GetConVar( "snappy_usey" )
 	local sanpZ = GetConVar( "snappy_usez" )
 	--MsgN(sanpPersist:GetBool())
-	if (sanpVar and sanpAng and sanpPersist) and ( Car.HoldingSnapTool or sanpPersist:GetBool()) then
+	if (sanpVar and sanpAng and sanpPersist and sanpLifter) and ( Car.HoldingSnapTool or sanpPersist:GetBool()) then
 		if IsValid(clientsideProp) then
 			if IsValid(ent) and ent:GetModel() == clientsideProp:GetModel() then
-				Car.SnappySnap(clientsideProp,ent,sanpVar:GetFloat(),sanpAng:GetFloat(),Entity(sanpEnt:GetInt()),sanpX:GetBool(),sanpY:GetBool(),sanpZ:GetBool())
+				local lifter
+				if sanpLifter:GetBool() then
+					local pit = Car.GetPitstop(LocalPlayer())
+					if IsValid(pit) and IsValid(pit.Lifter) then
+						lifter = pit.Lifter
+					end
+				end
+				Car.SnappySnap(clientsideProp,ent,sanpVar:GetFloat(),sanpAng:GetFloat(),Entity(sanpEnt:GetInt()),sanpX:GetBool(),sanpY:GetBool(),sanpZ:GetBool(),lifter)
 			else
 				clientsideProp:Remove()
 			end
