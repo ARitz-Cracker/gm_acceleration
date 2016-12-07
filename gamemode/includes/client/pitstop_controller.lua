@@ -31,11 +31,27 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		mat3:SetMaterial( "gm_acceleration/hud/angle_2" )
 		mat3:SetPos( 40, 30+106+106 )
 		mat3:SetSize( 96, 96 )
+		mat3.OnValueChanged = onValChanged
+		
+		local onValChanged = function(panel,ang)
+			net.Start("car_pit_angle")
+			net.WriteAngle(Angle(mat:GetValue(),mat2:GetValue(),mat3:GetValue()))
+			net.SendToServer()
+		end
+		mat.OnValueChanged = onValChanged
+		mat2.OnValueChanged = onValChanged
+		mat3.OnValueChanged = onValChanged
+		
 		
 		local updown = vgui.Create( "DAlphaBar", window )
 		updown:SetPos( 10, 30 )
 		updown:SetSize( 18, 310 )
 		updown:SetValue(0)
+		updown.OnChange = function( self,num )
+			net.Start("car_pit_pos")
+			net.WriteUInt(math.Round((num-1)*-150),8)
+			net.SendToServer()
+		end
 		
 		local DScrollPanel = vgui.Create( "DScrollPanel", window )
 		DScrollPanel:SetSize( 300, 310 )

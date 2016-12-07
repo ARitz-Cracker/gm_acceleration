@@ -31,6 +31,7 @@ function PANEL:OnMousePressed( keyCode )
 	end
 	if keyCode == MOUSE_RIGHT then
 		self.Angle = 0
+		self:OnValueChanged(self.Angle)
 	end
 end
 
@@ -39,6 +40,16 @@ function PANEL:OnMouseReleased( keyCode )
 		self.Rotating = false
 	end
 end
+
+function PANEL:SetValue( ang )
+	self.Angle = tonumber(ang) or 0
+end
+
+function PANEL:GetValue( ang )
+	return self.Angle
+end
+
+PANEL.OnValueChanged = NULLFUNC
 
 function PANEL:Think( keyCode )
 	if not self.Rotating then return end
@@ -54,5 +65,6 @@ function PANEL:Think( keyCode )
 	else
 		self.Angle = - (math.atan(y / x) * 180 / math.pi);
 	end
+	self:OnValueChanged(self.Angle)
 end
 vgui.Register( "AngleSelect", PANEL, "Material" )

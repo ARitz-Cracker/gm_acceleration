@@ -88,8 +88,7 @@ function ENT:Initialize()
 	self.IsPitstop = true
 	self.Whitelist = {}
 	
-	--self.LifterPos = self:OBBCenter() - Vector(0,0,150)
-	self.LifterPos = self:OBBCenter() - Vector(0,0,100)
+	self.LifterPos = self:OBBCenter() - Vector(0,0,150)
 	self.LifterAng = angle_zero
 	self.LifterPosLast = self.LifterPos
 	self.LifterAngLast = self.LifterAng
@@ -136,7 +135,13 @@ end)
 net.Receive("car_pit_angle",function(msglen,ply)
 	local ent = Car.GetPitstop(ply)
 	if IsValid(ent) then
-		ent:SetLifterAngles(net.ReadAngles())
+		ent:SetLifterAngles(net.ReadAngle())
+	end
+end)
+net.Receive("car_pit_pos",function(msglen,ply)
+	local ent = Car.GetPitstop(ply)
+	if IsValid(ent) then
+		ent:SetLifterPos(ent:OBBCenter()-Vector(0,0,math.Clamp(net.ReadUInt(8),0,150)))
 	end
 end)
 function ENT:SpawnFunction( ply, tr )
@@ -154,7 +159,6 @@ function ENT:Think()
 	if self.LifterAngEnd > CurTime() then
 		local a = self:LocalToWorldAngles(LerpAngle( ARCLib.BetweenNumberScale(self.LifterAngStart,CurTime(),self.LifterAngEnd), self.LifterAngLast, self.LifterAng ))
 		self.Lifter:SetAngles(a)
-		MsgN(a)
 		self:NextThink(CurTime())
 		changetime = true
 	elseif (self.LifterAngSound) then
@@ -162,6 +166,18 @@ function ENT:Think()
 		self.LifterAngSound:Stop()
 		self.LifterAngSound = nil
 		self:EmitSound("vehicles/crane/crane_extend_stop.wav")
+	end
+	
+	if self.LifterPosEnd > CurTime() then
+		local a = self:LocalToWorld(LerpVector( ARCLib.BetweenNumberScale(self.LifterPosStart,CurTime(),self.LifterPosEnd), self.LifterPosLast, self.LifterPos ))
+		self.Lifter:SetPos(a)
+		self:NextThink(CurTime())
+		changetime = true
+	elseif (self.LifterPosSound) then
+		self.Lifter:SetPos(self:LocalToWorld(self.LifterPos))
+		self.LifterPosSound:Stop()
+		self.LifterPosSound = nil
+		self:EmitSound("plats/crane/vertical_stop.wav")
 	end
 	
 	return changetime
@@ -172,9 +188,19 @@ function ENT:SetLifterAngles(ang)
 		self.LifterAngLast = self:WorldToLocalAngles(self.Lifter:GetAngles())
 		self.LifterAng = ang
 		self.LifterAngStart = CurTime()
-		self.LifterAngEnd = CurTime() + 1;
+		self.LifterAngEnd = CurTime() + 0.2;
 		self.LifterAngSound = CreateSound( self, "ambient/machines/machine3.wav")
 		self.LifterAngSound:Play()
+	end
+end
+function ENT:SetLifterPos(pos)
+	if pos != self.LifterPos then
+		self.LifterPosLast = self:WorldToLocal(self.Lifter:GetPos())
+		self.LifterPos = pos
+		self.LifterPosStart = CurTime()
+		self.LifterPosEnd = CurTime() + 0.2;
+		self.LifterPosSound = CreateSound( self, "plats/crane/vertical_start.wav")
+		self.LifterPosSound:Play()
 	end
 end
 
