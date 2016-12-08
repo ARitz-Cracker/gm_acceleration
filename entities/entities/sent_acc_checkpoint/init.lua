@@ -41,21 +41,21 @@ end
 
 function ENT:CompareAng(ang,flip)
 	if flip then
-		return ang <= 90
+		return ang <= 0
 	else
-		return ang > 90
+		return ang > 0
 	end
 end
 
 function ENT:Think()
-	
+	if not IsValid(self.Counterpart) then return end
 	for k, Pl in pairs( player.GetAll() ) do
 	
 		--if ( !Pl.IsRacing or Pl.NextCheckpoint ~= self.CheckpointID ) then continue end
-		self:CheckPlayerPassed( Pl )
-		
+		if self:CheckPlayerPassed( Pl ) and self.Counterpart:CheckPlayerPassed( Pl ) then
+			self:OnCheckpoint( Pl )
+		end
 	end
-	
 end
 
 function ENT:SetSlave( bIsSlave )
@@ -64,6 +64,7 @@ function ENT:SetSlave( bIsSlave )
 end
 
 function ENT:SetCounterpart( eCounterpart )
+	if eCounterpart:GetClass() != "sent_acc_checkpoint" then return end
 	self.Counterpart = eCounterpart
 	self:SetNWEntity( "Counterpart", eCounterpart)
 end
@@ -82,13 +83,16 @@ end
 function ENT:CheckPlayerPassed( Pl )
 
 	local ang = self:WorldToLocalAngles( ( Pl:GetPos()-self:GetPos() ):Angle() ).y
-	
+	if math.abs(ang) < 90 then
+		self.PlayerAnglesTable[ Pl ] = nil
+		return false
+	end
+	local passed = false
 	if self.PlayerAnglesTable[ Pl ] then
 		if self:CompareAng( ang, not self.IsSlave ) and self:CompareAng( self.PlayerAnglesTable[ Pl ], self.IsSlave ) then
-			self:OnCheckpoint( Pl )
+			passed = true
 		end
 	end
-	
 	self.PlayerAnglesTable[ Pl ] = ang
-
+	return passed
 end

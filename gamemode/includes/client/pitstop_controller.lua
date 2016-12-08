@@ -17,6 +17,7 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 			window:Close()
 			return
 		end
+		--START SIDE PANEL
 		local mat = vgui.Create( "AngleSelect", window )
 		mat:SetMaterial( "gm_acceleration/hud/angle_3" )
 		mat:SetPos( 40, 30 )
@@ -44,7 +45,6 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		mat2.OnValueChanged = onValChanged
 		mat3.OnValueChanged = onValChanged
 		
-		
 		local updown = vgui.Create( "DAlphaBar", window )
 		updown:SetPos( 10, 30 )
 		updown:SetSize( 18, 310 )
@@ -54,12 +54,18 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 			net.WriteUInt(math.Round((num-1)*-170),8)
 			net.SendToServer()
 		end
+		--END SIDE PANEL
 		
 		local DScrollPanel = vgui.Create( "DScrollPanel", window )
 		DScrollPanel:SetSize( 300, 310 )
 		DScrollPanel:SetPos( 150, 30 )
 		
+		--START MAIN CONTROLS
 		
+		
+		--END MAIN CONTROLS
+		
+		--START FRIEND LIST
 		local DCollapsible = vgui.Create( "DCollapsibleCategory", DScrollPanel )	// Create a collapsible category
 		DCollapsible:SetSize( 300, 24 )										 // Set size
 		DCollapsible:SetExpanded( 0 )											 // Is it expanded when you open the panel?
@@ -86,7 +92,7 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		local CategoryContentTwo = vgui.Create( "DLabel" )			// Make some more content
 		CategoryContentTwo:SetText( "Hello" )
 		DermaList:AddItem( CategoryContentTwo )
-		
+		--END FRIEND LIST
 		
 	end
 } )

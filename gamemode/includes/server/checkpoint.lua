@@ -53,15 +53,14 @@ function Car.InitializeCheckpoints( )
 		SlaveCheckpoint:SetCheckpointID( checkpointID )
 		SlaveCheckpoint:SetSlave( true )
 		
-		MasterCheckpoint:SetCounterpart( SlaveCheckpoint )
-		SlaveCheckpoint:SetCounterpart( MasterCheckpoint )
-		
 		MasterCheckpoint:Spawn( )
 		SlaveCheckpoint:Spawn( )
 		
 		MasterCheckpoint:Activate( )
 		SlaveCheckpoint:Activate( )
 		
+		MasterCheckpoint:SetCounterpart( SlaveCheckpoint )
+		SlaveCheckpoint:SetCounterpart( MasterCheckpoint )
 	end
 
 end

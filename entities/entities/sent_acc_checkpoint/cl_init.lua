@@ -22,7 +22,7 @@ function ENT:Initialize()
 
 end
 
-function ENT:GetSlave( )
+function ENT:IsSlave( )
 	return self:GetNWBool( "IsSlave", false )
 end
 
@@ -37,14 +37,19 @@ end
 function ENT:Think()
 
 end
-
+local color_green = Color(0,255,0,255)
 function ENT:Draw()
 
 	self:DrawModel()
 	local ang = (LocalPlayer():GetPos()-self:GetPos()):Angle()
-	render.DrawLine( self:GetPos(), self:GetPos() + ang:Forward()*10, color_white, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,90,0) ):Forward()*10, color_blue, false ) 
-	render.DrawLine( self:GetPos(), self:GetPos() + self:GetAngles():Forward()*10, color_red, false ) 
+	render.DrawLine( self:GetPos(), self:GetPos() + ang:Forward()*40, color_white, false ) 
+	render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,180,0) ):Forward()*40, color_blue, false ) 
+	render.DrawLine( self:GetPos(), self:GetPos() + self:GetAngles():Forward()*40, color_red, false ) 
+	if self:IsSlave() then
+		render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,90,0) ):Forward()*40, color_green, false ) 
+	else
+		render.DrawLine( self:GetPos(), self:GetPos() + self:LocalToWorldAngles( Angle(0,-90,0) ):Forward()*40, color_green, false ) 
+	end
 	
 end
 
