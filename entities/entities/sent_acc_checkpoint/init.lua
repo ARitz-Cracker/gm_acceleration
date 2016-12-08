@@ -21,13 +21,18 @@ function ENT:Initialize()
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
 	
+	self.Counterpart = NULL
+	self.CheckpointID = -1
+	
+	self.PlayerAnglesTable = {}
+	
 end
 
 function ENT:SpawnFunction( ply, tr )
 
  	if ( !tr.Hit ) then return end
 	local blarg = ents.Create ("sent_acc_checkpoint")
-	blarg:SetPos(tr.HitPos/* + tr.HitNormal * 40*/)
+	blarg:SetPos(tr.HitPos)
 	blarg:Spawn()
 	blarg:Activate()
 	return blarg
@@ -43,19 +48,44 @@ function ENT:CompareAng(ang,flip)
 end
 
 function ENT:Think()
-	local ang = self:WorldToLocalAngles((Entity(1):GetPos()-self:GetPos()):Angle()).y --TODO: Currently the checkpoints have infinite hight. Check if pitch < 0 to make sure people are not underneith? (That would also assume that the origin is at the bottom of the entity)
-	if self.LastAng then
-		if self:CompareAng(ang,not self.IsSlave) and self:CompareAng(self.LastAng,self.IsSlave) then
-			self:EmitSound("buttons/blip1.wav")
+	
+	for k, Pl in pairs( player.GetAll() ) do
+	
+		--if ( !Pl.IsRacing or Pl.NextCheckpoint ~= self.CheckpointID ) then continue end
+		self:CheckPlayerPassed( Pl )
+		
+	end
+	
+end
+
+function ENT:SetSlave( bIsSlave )
+	self.IsSlave = bIsSlave
+end
+
+function ENT:SetCounterpart( eCounterpart )
+	self.Counterpart = eCounterpart
+end
+
+function ENT:SetCheckpointID( iCheckpointID )
+	self.CheckpointID = iCheckpointID
+end
+
+function ENT:OnCheckpoint( Pl )
+
+	self:EmitSound("buttons/blip1.wav")
+
+end
+
+function ENT:CheckPlayerPassed( Pl )
+
+	local ang = self:WorldToLocalAngles( ( Pl:GetPos()-self:GetPos() ):Angle() ).y
+	
+	if self.PlayerAnglesTable[ Pl ] then
+		if self:CompareAng( ang, not self.IsSlave ) and self:CompareAng( self.PlayerAnglesTable[ Pl ], self.IsSlave ) then
+			self:OnCheckpoint( Pl )
 		end
 	end
-	self.LastAng = ang
-end
-
-function ENT:OnRemove()
-
-end
-
-function ENT:Use(activator, caller, type, value)
+	
+	self.PlayerAnglesTable[ Pl ] = ang
 
 end

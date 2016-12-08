@@ -22,10 +22,7 @@ GM.TeamBased = true
 
 
 Car = Car or {}
-
-function GM:Initialize()
-
-end
+Car.DataFolder = "acceleration/"
 
 function GM:CreateTeams()
 	
