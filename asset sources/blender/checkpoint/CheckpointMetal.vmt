@@ -1,0 +1,7 @@
+"LightmappedGeneric"
+{
+	"$basetexture" "SteamLibrary/steamapps/common/GarrysMod/garrysmod/gamemodes/gm_acceleration/asset sources/blender/checkpoint/CheckpointMetal"
+	"$envmap" "env_cubemap"
+	"$envmapmask" "SteamLibrary/steamapps/common/GarrysMod/garrysmod/gamemodes/gm_acceleration/asset sources/blender/checkpoint/CheckpointMetal_G"
+	"$normalmap" "SteamLibrary/steamapps/common/GarrysMod/garrysmod/gamemodes/gm_acceleration/asset sources/blender/checkpoint/CheckpointMetal_N"
+}

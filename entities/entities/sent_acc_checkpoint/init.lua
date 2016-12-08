@@ -16,7 +16,7 @@ include('shared.lua')
 
 function ENT:Initialize()
 
-	self:SetModel( "models/props_trainstation/trainstation_post001.mdl" )
+	self:SetModel( "models/props/acceleration/checkpoint.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
 	self:SetMoveType( MOVETYPE_NONE )
 	self:SetSolid( SOLID_VPHYSICS )
@@ -27,7 +27,7 @@ function ENT:SpawnFunction( ply, tr )
 
  	if ( !tr.Hit ) then return end
 	local blarg = ents.Create ("sent_acc_checkpoint")
-	blarg:SetPos(tr.HitPos + tr.HitNormal * 40)
+	blarg:SetPos(tr.HitPos/* + tr.HitNormal * 40*/)
 	blarg:Spawn()
 	blarg:Activate()
 	return blarg
