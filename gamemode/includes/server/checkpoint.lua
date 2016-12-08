@@ -46,19 +46,21 @@ function Car.InitializeCheckpoints( )
 		MasterCheckpoint:SetAngles( pairTable[1].Angle )
 		MasterCheckpoint:SetCheckpointID( checkpointID )
 		MasterCheckpoint:SetSlave( false )
-		MasterCheckpoint:Spawn( )
-		MasterCheckpoint:Activate( )
 		
 		local SlaveCheckpoint = ents.Create( Car.CheckpointEntityName )
 		SlaveCheckpoint:SetPos( pairTable[2].Position )
 		SlaveCheckpoint:SetAngles( pairTable[2].Angle )
 		SlaveCheckpoint:SetCheckpointID( checkpointID )
 		SlaveCheckpoint:SetSlave( true )
-		SlaveCheckpoint:Spawn( )
-		SlaveCheckpoint:Activate( )
 		
 		MasterCheckpoint:SetCounterpart( SlaveCheckpoint )
 		SlaveCheckpoint:SetCounterpart( MasterCheckpoint )
+		
+		MasterCheckpoint:Spawn( )
+		SlaveCheckpoint:Spawn( )
+		
+		MasterCheckpoint:Activate( )
+		SlaveCheckpoint:Activate( )
 		
 	end
 

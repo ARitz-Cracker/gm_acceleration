@@ -60,14 +60,17 @@ end
 
 function ENT:SetSlave( bIsSlave )
 	self.IsSlave = bIsSlave
+	self:SetNWBool( "IsSlave", bIsSlave )
 end
 
 function ENT:SetCounterpart( eCounterpart )
 	self.Counterpart = eCounterpart
+	self:SetNWEntity( "Counterpart", eCounterpart)
 end
 
 function ENT:SetCheckpointID( iCheckpointID )
 	self.CheckpointID = iCheckpointID
+	self:SetNWInt( "CheckpointID", iCheckpointID)
 end
 
 function ENT:OnCheckpoint( Pl )

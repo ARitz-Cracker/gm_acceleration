@@ -18,15 +18,25 @@ function ENT:Initialize()
 	effectdata:SetEntity( self )
 
 	util.Effect( "acc_checkpoint_pulse", effectdata )
+	util.Effect( "acc_checkpoint_lightribbon", effectdata )
 
+end
+
+function ENT:GetSlave( )
+	return self:GetNWBool( "IsSlave", false )
+end
+
+function ENT:GetCounterpart( )
+	return self:GetNWEntity( "Counterpart", NULL )
+end
+
+function ENT:GetCheckpointID( )
+	return self:GetNWInt( "CheckpointID", -1 )
 end
 
 function ENT:Think()
 
 end
-
-local color_blue = Color(0,0,255,255)
-local color_red = Color(255,0,0,255)
 
 function ENT:Draw()
 
