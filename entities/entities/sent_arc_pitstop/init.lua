@@ -111,6 +111,8 @@ function ENT:CreateLifter()
 	self.Lifter:SetModel("models/props_phx/construct/metal_plate1.mdl")
 	self.Lifter:Spawn()
 	self.Lifter:GetPhysicsObject():EnableMotion( false ) 
+	self.Lifter:SetCollisionGroup( COLLISION_GROUP_WORLD )
+	self.Lifter:SetRenderMode(RENDERMODE_NONE)
 	self.Lifter.CarFrozenEnt = true
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)

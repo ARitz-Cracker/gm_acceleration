@@ -69,8 +69,8 @@ end
 
 function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl( "Header", { Description = "#tool.snappy.help" } )
-	CPanel:AddControl( "Slider", { Label = "#tool.snappy.position", Command = "snappy_snappos", Type = "Float", Min = 15, Max = 90, Help = true } )
-	CPanel:AddControl( "Slider", { Label = "#tool.snappy.angle", Command = "snappy_snapang", Type = "Float", Min = 10, Max = 100, Help = true } )
+	CPanel:AddControl( "Slider", { Label = "#tool.snappy.position", Command = "snappy_snappos", Type = "Float", Min = 5, Max = 90, Help = true } )
+	CPanel:AddControl( "Slider", { Label = "#tool.snappy.angle", Command = "snappy_snapang", Type = "Float", Min = 15, Max = 90, Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.lifter", Command = "snappy_lifter", Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.persist", Command = "snappy_persist", Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.snappy.usex", Command = "snappy_usex", Help = true } )

@@ -109,3 +109,15 @@ hook.Add("Think","Acceleration Snappy",function()
 		clientsideProp:Remove()
 	end
 end)
+
+--Not part of the snapper, but still a tool thing
+
+hook.Add( "PreDrawHalos", "AddHalos", function()
+	local lift = Car.GetPitstop(LocalPlayer()).Lifter
+	if IsValid(lift) then
+		halo.Add( lift:GetChildren(), Color( 255, 0, 0 ), 5, 5, 2 )
+	end
+end )
+
+
+

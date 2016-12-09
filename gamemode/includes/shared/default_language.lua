@@ -30,8 +30,13 @@ Car.Msgs.PitstopMsgs.NoPitstop = "You do not have a garage"
 Car.Msgs.PitstopMsgs.NotInPitstop = "You are not in your garage"
 Car.Msgs.PitstopMsgs.ToolNotInPitstop = "You cannot use a tool outside your garage"
 Car.Msgs.PitstopMsgs.ToolNotAcceleration = "You can only use the remover or tools from the \"Acceleration\" category"
+Car.Msgs.PitstopMsgs.NoBuild = "Your garage is not in BUILD mode"
 
 Car.Msgs.tool = Car.Msgs.tool or {}
 Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}
-Car.Msgs.tool.snappy.ent_selected = "Selected %ENT% as reference entity"
+Car.Msgs.tool.snappy.ent_selected = "Selected %ENT% as the reference entity"
 Car.Msgs.tool.snappy.ent_reset = "Cleared reference entity"
+
+Car.Msgs.tool.assembler = Car.Msgs.tool.assembler or {}
+Car.Msgs.tool.assembler.ent_invalid = "This entity cannot be used in a vehicle."
+Car.Msgs.tool.assembler.ent_within = "The entity is not within the size limit"

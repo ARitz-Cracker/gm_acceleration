@@ -201,7 +201,7 @@ function ENT:Draw()
 		render.DrawLine( self.Lifter:GetPos(), linepoint, color_red, true )
 		render.DrawLine( linepoint, linepoint2, color_red, true )	
 		render.DrawLine( linepoint, linepoint3, color_red, true )			
-		render.DrawWireframeBox( self.Lifter:GetPos(),self.Lifter:GetAngles(), Vector(280/-2,190/-2,0), Vector(280/2,190/2,120), color_red, true ) 
+		render.DrawWireframeBox( self.Lifter:GetPos(),self.Lifter:GetAngles(), Car.LifterCarMins, Car.LifterCarMaxs, color_red, true ) 
 	end
 end
 local color_red = Color(255,0,0,255)
