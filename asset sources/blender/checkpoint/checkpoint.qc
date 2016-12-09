@@ -14,7 +14,7 @@ $texturegroup skinfamilies
 	{ "CheckpointMetal_Var2"  "CheckpointLight"}
 }
 
-$attachment "particle_attachment" "" 0 0 10.88607 absolute rigid
+$attachment "particle_attachment" "" 0 0 9.86583 absolute rigid
 
 $attachment "barriar_attachment_top" "" 0 9.13638 12.51101 absolute rigid
 $attachment "barriar_attachment_bot" "" 0 9.13638 0.319840 absolute rigid
