@@ -9,21 +9,11 @@
 	By Aritz Beobide-Cardinal (ARitz Cracker) && James R Swift (James xX)
  
 --------------------------------------------------------------------------------------]]--
-
-AddCSLuaFile( "cl_init.lua" )
-AddCSLuaFile( "shared.lua" )
-include( "shared.lua" )
-
-function Car.MsgCL(ply,msg)
-  if !IsValid(ply) || !ply:IsPlayer() then
-    MsgN("Acceleration: "..tostring(msg))
-  else
-    ply:PrintMessage( HUD_PRINTTALK, "Acceleration: "..tostring(msg))
-  end
+if SERVER then
+	Car.Dir = "gm_acceleration_server"
+else
+	Car.Dir = "gm_acceleration_client"
 end
-
-function GM:Initialize()
-	
-	Car.InitializeCheckpoints( )
-	
-end
+Car.Settings = Car.Settings or {}
+Car.Settings.admins = {"owner","superadmin","admin"}
+Car.Settings.language = "en_ca"

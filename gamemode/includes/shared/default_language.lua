@@ -34,9 +34,42 @@ Car.Msgs.PitstopMsgs.NoBuild = "Your garage is not in BUILD mode"
 
 Car.Msgs.tool = Car.Msgs.tool or {}
 Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}
+Car.Msgs.tool.snappy.name = "Snappy"
+Car.Msgs.tool.snappy.help = "This tool \"snaps\" the entity you're targetting in place. Allowing for more exact building!"
+Car.Msgs.tool.snappy.position = {}
+Car.Msgs.tool.snappy.position._ = "Snap position"
+Car.Msgs.tool.snappy.position.help = "Snaps the entity position to the nearest...position?? (TODO: Better explination)"
+
 Car.Msgs.tool.snappy.ent_selected = "Selected %ENT% as the reference entity"
 Car.Msgs.tool.snappy.ent_reset = "Cleared reference entity"
 
 Car.Msgs.tool.assembler = Car.Msgs.tool.assembler or {}
 Car.Msgs.tool.assembler.ent_invalid = "This entity cannot be used in a vehicle."
 Car.Msgs.tool.assembler.ent_within = "The entity is not within the size limit"
+
+
+Car.Msgs.CommandOutput = Car.Msgs.CommandOutput or {}
+Car.Msgs.CommandOutput.SysReset = "System reset required! Please enter \"youraddon reset\""
+Car.Msgs.CommandOutput.SysSetting = "%SETTING% has been changed to %VALUE%"
+Car.Msgs.CommandOutput.AdminCommand = "You must be one of these ranks to use this command: %RANKS%"
+Car.Msgs.CommandOutput.SettingsSaved = "Settings have been saved!"
+Car.Msgs.CommandOutput.SettingsError = "Error saving settings."
+Car.Msgs.CommandOutput.ResetYes = "System reset!"
+Car.Msgs.CommandOutput.ResetNo = "Error. Check server console for details."
+
+Car.Msgs.AdminMenu = Car.Msgs.AdminMenu or {}
+Car.Msgs.AdminMenu.Remove = "Remove"
+Car.Msgs.AdminMenu.Add = "Add"
+Car.Msgs.AdminMenu.Description = "Description:"
+Car.Msgs.AdminMenu.Enable = "Enable"
+Car.Msgs.AdminMenu.Settings = "Settings"
+Car.Msgs.AdminMenu.AdvSettings = "Advanced Settings"
+Car.Msgs.AdminMenu.ChooseSetting = "Choose setting"
+Car.Msgs.AdminMenu.Commands = "Commands"
+Car.Msgs.AdminMenu.SaveSettings = "Save Settings"
+Car.Msgs.AdminMenu.Logs = "System Logs"
+Car.Msgs.AdminMenu.Unavailable = "This feature is currently unavailable"
+
+Car.SettingsDesc = Car.SettingsDesc or {}
+Car.SettingsDesc.admins = "The usergroups that can access the admin commands"
+Car.SettingsDesc.language = "The language to display"

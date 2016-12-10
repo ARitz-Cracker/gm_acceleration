@@ -83,6 +83,9 @@ function Car.Initialize( )
 
 	Car.StartupMessage( GM )
 
+	Car.Msg("####     Loading Shared Files..     ####")
+	Car.IncludeFromDirectory( GM, "includes/shared" )
+	
 	if ( SERVER ) then
 		
 		Car.Msg("####     Loading Serverside Files..     ####")
@@ -98,10 +101,9 @@ function Car.Initialize( )
 		Car.IncludeFromDirectory( GM, "includes/client" )
 		
 	end
-	
-	Car.Msg("####     Loading Shared Files..     ####")
-	Car.IncludeFromDirectory( GM, "includes/shared" )
-	
+	if isfunction(Car.Load) then
+		Car.Load()
+	end
 end
 
 Car.Initialize( )
