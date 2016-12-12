@@ -129,6 +129,13 @@ hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 		end
 	end
 end)
+hook.Add("EntityRemoved","Acceleration Forcefield",function(ent)
+	if ent.Car_FieldSound then
+		ent.Car_FieldSound:Stop() 
+	end
+	ent.Car_FieldSound = nil
+end)
+
 net.Receive("car_pit_enable",function(msglen,ply)
 	local ent = net.ReadEntity()
 	net.Start("car_pit_enable")
@@ -232,6 +239,37 @@ end
 function ENT:PhysicsCollide( data, phys )
 	sound.Play( "pitstop/impact.wav", data.HitPos, 80, math.random(85,135), math.Clamp(data.Speed/1200,0,1))
 end
+function ENT:StartTouch(ent)
+
+	if not ent.Car_FieldSoundTime or ent.Car_FieldSoundTime <= SysTime() then
+		if ent.Car_FieldSound then
+			ent.Car_FieldSound:Stop()
+		end
+		ent.Car_FieldSound = CreateSound( ent, "ambient/machines/combine_shield_touch_loop1.wav")
+		ent.Car_FieldSound:PlayEx( 0.3, 50 ) 	
+		ent.Car_FieldSound:ChangePitch( 100, 0.2 ) 
+	end
+	if ent:IsPlayer() then
+		ent.Car_FieldSoundTime = SysTime() + 0.25
+	end
+end
+
+function ENT:EndTouch(ent)
+	if ent.Car_FieldSound then
+		if ent:IsPlayer() then
+			timer.Simple(0.3,function()
+				if ent.Car_FieldSoundTime <= SysTime() then
+					ent.Car_FieldSound:ChangePitch( 45, 0.5 ) 
+					ent.Car_FieldSound:FadeOut( 0.6 )
+				end
+			end)
+		else
+			ent.Car_FieldSound:ChangePitch( 45, 0.5 ) 
+			ent.Car_FieldSound:FadeOut( 0.6 ) 
+		end
+	end
+end
+
 function ENT:OnRemove()
 	if IsValid(self.Lifter) then
 		self.Lifter:Remove()

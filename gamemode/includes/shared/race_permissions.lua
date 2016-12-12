@@ -19,7 +19,12 @@ function Car.GetPitstop(ply)
 	end
 	return result
 end
-
+--[[
+hook.Add("CanTool","willox pls fix",function( ply, tr, tool )
+	debug.Trace()
+	print(tool..","..tostring(tr.HitPos))
+end)
+]]
 hook.Add("CanTool","Acceleration ToolsOnlyInPitstop",function( ply, tr, tool )
 	local inPitstop = true
 	local pitstop = Car.GetPitstop(ply)

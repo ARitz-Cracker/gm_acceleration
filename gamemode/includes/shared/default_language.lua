@@ -47,6 +47,33 @@ Car.Msgs.tool.assembler = Car.Msgs.tool.assembler or {}
 Car.Msgs.tool.assembler.ent_invalid = "This entity cannot be used in a vehicle."
 Car.Msgs.tool.assembler.ent_within = "The entity is not within the size limit"
 
+Car.Msgs.tool.mover = Car.Msgs.tool.mover or {}
+Car.Msgs.tool.mover.name = "Mover"
+Car.Msgs.tool.mover.desc = "Allows you to move things precisely"
+Car.Msgs.tool.mover.left = "Move selected object"
+Car.Msgs.tool.mover.right = "Rotate selected object"
+Car.Msgs.tool.mover.movex = "Backward/Forward distance"
+Car.Msgs.tool.mover.movey = "Left/Right distance"
+Car.Msgs.tool.mover.movez = "Down/Up distance"
+
+Car.Msgs.tool.mover.lifter = "Move relative to lifter"
+Car.Msgs.tool.mover.moveang = "Rotation amount (degrees)"
+Car.Msgs.tool.mover.angaxis = {}
+Car.Msgs.tool.mover.angaxis._ = "Rotation Axis"
+Car.Msgs.tool.mover.angaxis.setting1 = "Entity Up/Down"
+Car.Msgs.tool.mover.angaxis.setting2 = "Entity Right/Left"
+Car.Msgs.tool.mover.angaxis.setting3 = "Entity Front/Back"
+Car.Msgs.tool.mover.angaxis.setting4 = "Lifter Up/Down"
+Car.Msgs.tool.mover.angaxis.setting5 = "Lifter Right/Left"
+Car.Msgs.tool.mover.angaxis.setting6 = "Lifter Front/Back"
+Car.Msgs.tool.mover.angaxis.setting7 = "Perpendicular to the target surface"
+
+Car.Msgs.tool.mover.angcenter = {}
+Car.Msgs.tool.mover.angcenter._ = "Rotation Center"
+Car.Msgs.tool.mover.angcenter.setting1 = "Entity origin"
+Car.Msgs.tool.mover.angcenter.setting2 = "Center of the entity's model"
+Car.Msgs.tool.mover.angcenter.setting3 = "Lifter refrence point"
+Car.Msgs.tool.mover.angcenter.setting4 = "The target position"
 
 Car.Msgs.CommandOutput = Car.Msgs.CommandOutput or {}
 Car.Msgs.CommandOutput.SysReset = "System reset required! Please enter \"youraddon reset\""

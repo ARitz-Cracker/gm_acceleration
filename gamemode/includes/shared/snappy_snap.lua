@@ -115,7 +115,7 @@ end)
 hook.Add( "PreDrawHalos", "AddHalos", function()
 	local lift = Car.GetPitstop(LocalPlayer()).Lifter
 	if IsValid(lift) then
-		halo.Add( lift:GetChildren(), Color( 255, 0, 0 ), 5, 5, 2 )
+		halo.Add( lift:GetChildren(), Color( 255, 0, 0, 255 ), 5, 5, 10 )
 	end
 end )
 

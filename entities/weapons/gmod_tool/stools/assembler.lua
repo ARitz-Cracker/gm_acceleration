@@ -81,7 +81,12 @@ function TOOL:Think()
 end
 
 function TOOL:Reload( trace )
-	if not CLIENT then return false end
+	local lifter = Car.GetPitstop(self:GetOwner()).Lifter
+	if ( not IsValid( lifter )) then return false end
+	for k,v in ipairs(lifter:GetChildren()) do
+		v:SetParent()
+		v:SetCollisionGroup( COLLISION_GROUP_NONE ) 
+	end
 	return false
 end
 
