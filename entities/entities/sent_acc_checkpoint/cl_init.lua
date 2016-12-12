@@ -37,6 +37,7 @@ end
 function ENT:Think()
 
 end
+
 local color_green = Color(0,255,0,255)
 function ENT:Draw()
 
@@ -56,3 +57,28 @@ end
 function ENT:OnRemove()
 
 end
+
+function ENT:GetCheckpointColor( )
+
+	return Vector( 1, 0, 0 )
+	
+end
+
+
+matproxy.Add( {
+	name = "CheckpointColor",
+	init = function( self, mat, values )
+		-- Store the name of the variable we want to set
+		self.ResultTo = values.resultvar
+	end,
+	bind = function( self, mat, ent )
+		-- If the target ent has a function called GetPlayerColor then use that
+		-- The function SHOULD return a Vector with the chosen player's colour.
+
+		-- In sandbox this function is created as a network function,
+		-- in player_sandbox.lua in SetupDataTables
+		if ( ent.GetCheckpointColor ) then
+			mat:SetVector( self.ResultTo, ent:GetCheckpointColor() )
+		end
+	end
+} )

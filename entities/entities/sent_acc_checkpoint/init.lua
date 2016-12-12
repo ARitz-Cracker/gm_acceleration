@@ -76,6 +76,8 @@ end
 
 function ENT:OnCheckpoint( Pl )
 
+	hook.Run( "AccelerationPlayerCheckpointPassed", Pl, self.CheckpointID )
+
 	self:EmitSound("buttons/blip1.wav")
 
 end
