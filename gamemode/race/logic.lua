@@ -20,6 +20,8 @@ Car.Race.Enums.RaceStatus = {
 }
 
 Car.Race.RaceStatus = Car.Race.Enums.RaceStatus.NoCurrentRace
+Car.Race.MinimumRequired = 3
+Car.Race.TimerLength = 20 -- seconds
 Car.Race.LapCount = 0
 Car.Race.CheckpointCount = 0
 Car.Race.CurrentPlayers = { }
@@ -51,6 +53,52 @@ function Car.Race.Start( )
 
 end
 
+function Car.Race.AddPlayerToQueue( Pl )
+
+	Car.Race.QueuedPlayers[ Pl ] = Pl
+	
+	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) then
+	
+		Car.Race.MinimumPlayerRequirementMet( )
+	
+	end
+	
+end
+
+function Car.Race.RemovePlayerFromQueue( Pl )
+	
+	Car.Race.QueuedPlayers[ Pl ] = nil
+	
+end
+
+-- INTERNAL.
+function Car.Race.MinimumPlayerRequirementMet( )
+
+	local timerShouldStart = hook.Run( "AccelerationShouldRaceStart", Car.Race.QueuedPlayers )
+	if ( timerShouldStart ~= false ) then
+	
+		timer.Simple( Car.Race.TimerLength, Car.Race.TimerCallback )
+	
+	end
+	
+end
+
+-- INTERNAL.
+function Car.Race.TimerCallback( )
+
+	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) then
+	
+		Car.Race.Start( )
+		
+	else
+		
+		hook.Run( "AccelerationRaceCanceled", Car.Race.QueuedPlayers )
+		
+	end
+
+end
+
+-- INTERNAL.
 function Car.Race.AddPlayer( Pl )
 
 	Pl.NextCheckpoint = 1
@@ -59,6 +107,7 @@ function Car.Race.AddPlayer( Pl )
 
 end
 
+-- INTERNAL.
 function Car.Race.RemovePlayer( Pl )
 
 	Pl.NextCheckpoint = -1
@@ -67,6 +116,7 @@ function Car.Race.RemovePlayer( Pl )
 
 end
 
+-- INTERNAL.
 function Car.Race.End( )
 
 	for k, Pl in pairs( Car.Race.CurrentPlayers ) do
@@ -81,6 +131,7 @@ function Car.Race.End( )
 
 end
 
+-- INTERNAL.
 function Car.Race.HasRaceEnded( )
 
 	for k, Pl in pairs( Car.Race.CurrentPlayers ) do
@@ -95,6 +146,7 @@ function Car.Race.HasRaceEnded( )
 
 end
 
+-- INTERNAL.
 function Car.Race.Think( )
 
 	if ( Car.Race.RaceStatus == Car.Race.Enums.RaceStatus.RaceInProgress ) then
@@ -109,6 +161,7 @@ function Car.Race.Think( )
 
 end
 
+-- INTERNAL.
 function Car.Race.OnPlayerCheckpoint( Pl, CheckpointID )
 
 	if ( CheckpointID == Car.Race.CheckpointCount ) then
