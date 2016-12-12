@@ -5,4 +5,14 @@
 	"$surfaceprop" "glass"
 	"$reflectivity" "[0 0 0]"
 	"$nodecal" "1"
+	
+	$color2 "[1 1 1]"
+	
+	Proxies {
+	
+		CheckpointColor {
+			resultVar $color2
+		}
+
+	}
 }

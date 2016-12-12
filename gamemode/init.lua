@@ -14,6 +14,9 @@ AddCSLuaFile( "cl_init.lua" )
 AddCSLuaFile( "shared.lua" )
 include( "shared.lua" )
 
+include( "race/checkpoint.lua" )
+include( "race/logic.lua" )
+
 function Car.MsgCL(ply,msg)
   if !IsValid(ply) || !ply:IsPlayer() then
     MsgN("Acceleration: "..tostring(msg))
