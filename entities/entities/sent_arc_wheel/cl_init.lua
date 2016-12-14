@@ -22,6 +22,10 @@ color_green = Color(0,255,0,255)
 color_blue = Color(0,0,255,255)
 
 function ENT:Draw()
+	if not self.Enabled then
+		self:DrawModel()
+		return
+	end
 	if !self.Circumference then return end
 	--self.SkiWheel:SetPos(self:GetPos())
 	local curpos = self:GetPos()
@@ -50,14 +54,19 @@ net.Receive("car_wheel_axis",function()
 	local ent = net.ReadEntity()
 	local chr = net.ReadUInt(2)
 	local axis = string.char( chr + 119 ) 
+	local enabled = net.ReadBool()
 	if !IsValid(ent) then return end
-	MsgN(axis)
 	ent.WheelCutAxis = ent.SpeedVectorCutSettings[axis]
 	ent.WheelMoveAxis = ent.SpeedVectorMoveSettings[axis]
 	local dia = chr - 1
 	if dia == 0 then dia = 3 end
 	ent.Circumference = (ent:OBBMaxs()-ent:OBBMins())[string.char( dia + 119 )]*math.pi
-	MsgN(ent.Circumference)
+	ent.Enabled = enabled
+	if ent.Enabled then
+		ent.SkiWheel:SetPos(ent:GetPos())
+		ent.SkiWheel:SetAngles(ent:GetAngles())
+		ent.SkiWheel:SetParent(ent)
+	end
 end)
 
 

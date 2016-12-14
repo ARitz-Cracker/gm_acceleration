@@ -17,7 +17,7 @@ function ENT:Initialize()
 	self.phys = self:GetPhysicsObject()
 	if self.phys:IsValid() then
 		self.phys:Wake()
-		self.phys:SetMaterial( "gmod_ice" ) 
+		self.phys:SetMaterial( "jeeptire" ) 
 	end
 	--self:SetUseType(SIMPLE_USE)
 	--self:SetTrigger( true ) 
@@ -28,11 +28,32 @@ function ENT:Initialize()
 	self.Direction = 1
 	self.Speed = vector_origin
 end
+
+function ENT:EnableSki()
+	self.phys:SetMaterial( "gmod_ice" ) 
+	self.Enabled = true
+	net.Start("car_wheel_axis")
+	net.WriteEntity(self)
+	net.WriteUInt(string.byte(self.WheelAxis or "w") - 119,2)
+	net.WriteBool(self.Enabled)
+	net.Broadcast()
+end
+function ENT:DisableSki()
+	self.phys:SetMaterial( "jeeptire" ) 
+	self.Enabled = false
+	net.Start("car_wheel_axis")
+	net.WriteEntity(self)
+	net.WriteUInt(string.byte(self.WheelAxis or "w") - 119,2)
+	net.WriteBool(self.Enabled)
+	net.Broadcast()
+end
+
 net.Receive("car_wheel_axis",function(msglen,ply)
 	local ent = net.ReadEntity()
 	net.Start("car_wheel_axis")
 	net.WriteEntity(ent)
 	net.WriteUInt(string.byte(ent.WheelAxis or "w") - 119,2)
+	net.WriteBool(ent.Enabled)
 	net.Send(ply)
 end)
 function ENT:SetWheelAxis(axis)
@@ -44,6 +65,7 @@ function ENT:SetWheelAxis(axis)
 	net.Start("car_wheel_axis")
 	net.WriteEntity(self)
 	net.WriteUInt(string.byte(axis) - 119,2)
+	net.WriteBool(self.Enabled)
 	net.Broadcast()
 	self.WheelAxis = axis
 end
@@ -57,6 +79,7 @@ function ENT:SpawnFunction( ply, tr )
 end
 
 function ENT:Think()
+	if not self.Enabled then return end
 	local selfpos = self:GetPos()
 	local edited = false
 	for k,v in pairs(self.CollidePositions) do
@@ -139,6 +162,7 @@ function ENT:SetForce(speed)
 end
 
 function ENT:PhysicsUpdate( phys )
+	if not self.Enabled then return end
 	local wheelForce
 	if self.Speed != vector_origin then
 		wheelForce = self.phys:LocalToWorldVector(Vector(0,300,0)*self.Direction)
@@ -160,6 +184,24 @@ function ENT:PhysicsUpdate( phys )
 end
 
 function ENT:Use(activator, caller, type, value)
+	if math.abs(self:GetAngles().r) > 90 then
+		local welds = {}
+		for k,v in ipairs(constraint.GetTable(self)) do
+			if v.Type == "Weld" then
+				welds[#welds + 1] = {v.Ent1,v.Ent2,v.Bone1,v.Bone2,v.forcelimit,v.nocollide,false}
+			end
+		end
+		constraint.RemoveConstraints( self, "Weld") 
+		
+		
+		local ang = self:GetAngles()
+		ang.r = ang.r + 180
+		ang.y = ang.y + 180
+		self:SetAngles(ang)
+		for i=1,#welds do
+			constraint.Weld(unpack(welds[i]))
+		end
+	end
 	self.Direction = self.Direction * -1
 	self:DoDirectionEffect()
 end

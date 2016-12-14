@@ -192,7 +192,7 @@ end
 
 function ENT:Draw()
 	--self:UpdatePoints() -- TODO: Only update points if entity has been moved
-	self:DrawModel()
+	--self:DrawModel()
 	
 	if IsValid(self.Lifter) then
 		local linepoint = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*100
@@ -235,6 +235,7 @@ end
 
 net.Receive("car_pit_enable",function()
 	local ent = net.ReadEntity()
+	ent:UpdatePoints()
 	if IsValid(ent) then
 		ent:EnableBarrier(net.ReadBool())
 		ent.Player = net.ReadEntity()

@@ -8,8 +8,7 @@ include('shared.lua')
 ENT.ARitzDDProtected = true
 
 util.AddNetworkString("car_pit_enable")
-util.AddNetworkString("car_pit_angle")
-util.AddNetworkString("car_pit_pos")
+
 function ENT:Initialize()
 	self:SetModel( "models/hunter/plates/plate8x8.mdl" )
 
@@ -97,12 +96,14 @@ function ENT:Initialize()
 	self.LifterAngStart = 0
 	self.LifterAngEnd = 0
 	self.Lifter = NULL
+	
 	self:CreateLifter()
 	--ambient/machines/machine3.wav
 	--vehicles/crane/crane_extend_stop.wav 
 	
 	--plats/crane/vertical_start.wav
 	--plats/crane/vertical_stop.wav
+	self:DrawShadow( false ) 
 end
 function ENT:CreateLifter()
 	self.Lifter = ents.Create ("prop_physics")
@@ -114,6 +115,7 @@ function ENT:CreateLifter()
 	self.Lifter:SetCollisionGroup( COLLISION_GROUP_WORLD )
 	self.Lifter:SetRenderMode(RENDERMODE_NONE)
 	self.Lifter.CarFrozenEnt = true
+	self.Lifter:DrawShadow( false ) 
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then
@@ -144,18 +146,6 @@ net.Receive("car_pit_enable",function(msglen,ply)
 	net.WriteEntity(ent.Player)
 	net.WriteEntity(ent.Lifter)
 	net.Send(ply)
-end)
-net.Receive("car_pit_angle",function(msglen,ply)
-	local ent = Car.GetPitstop(ply)
-	if IsValid(ent) then
-		ent:SetLifterAngles(net.ReadAngle())
-	end
-end)
-net.Receive("car_pit_pos",function(msglen,ply)
-	local ent = Car.GetPitstop(ply)
-	if IsValid(ent) then
-		ent:SetLifterPos(ent:OBBCenter()-Vector(0,0,math.Clamp(net.ReadUInt(8),0,170)))
-	end
 end)
 function ENT:SpawnFunction( ply, tr )
  	if ( !tr.Hit ) then return end

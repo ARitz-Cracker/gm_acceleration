@@ -1,0 +1,10 @@
+VertexLitGeneric
+{
+	$basetexture	gm_acceleration/sign/all_color
+	$surfaceprop	metal
+	$bumpmap		gm_acceleration/sign/all_nrm
+	$envmap			env_cubemap
+	$envmapmask		gm_acceleration/sign/all_spec
+}
+
+//TODO: https://developer.valvesoftware.com/wiki/$ambientocclusion

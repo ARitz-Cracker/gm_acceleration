@@ -10,13 +10,13 @@ TOOL.Information = {
 	{ name = "right", stage = 0 },
 	{ name = "reload" }
 }
-TOOL.ClassWhitelist = {prop_physics=true,sent_arc_wheel=true,prop_vehicle_prisoner_pod}
+TOOL.ClassWhitelist = {prop_physics=true,sent_arc_wheel=true,prop_vehicle_prisoner_pod=true}
 
-Car.LifterCarMaxs = Vector(280/2,190/2,120)
-Car.LifterCarMins = Vector(280/-2,190/-2,0)
+Car.LifterCarMaxs = Vector(280/2,190/2,100)
+Car.LifterCarMins = Vector(280/-2,190/-2,-20)
 
-Car.LifterFlyMaxs = Vector(380/2,285/2,160)
-Car.LifterFlyMins = Vector(380/-2,285/-2,0)
+Car.LifterFlyMaxs = Vector(380/2,285/2,140)
+Car.LifterFlyMins = Vector(380/-2,285/-2,-20)
 
 function TOOL:DoThing(ent,add)
 	local lifter = Car.GetPitstop(self:GetOwner()).Lifter

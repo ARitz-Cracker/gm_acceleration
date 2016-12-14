@@ -25,7 +25,8 @@ function TOOL:LeftClick( trace )
 	if self:GetClientNumber( "lifter" ) != 0 and IsValid(lifter) then
 		ent:SetPos(lifter:LocalToWorld(lifter:WorldToLocal(ent:GetPos())+movepos))
 	else
-		ent:SetPos(ent:GetPos()+movepos)
+		local ply = self:GetOwner()
+		ent:SetPos(ply:LocalToWorld(ply:WorldToLocal(ent:GetPos())+movepos))
 	end
 	return true
 end
@@ -70,8 +71,9 @@ function TOOL:RightClick( trace )
 	elseif centermode == 4 then
 		refpoint = ent:WorldToLocal(trace.HitPos)
 	end
+	local pos = ent:LocalToWorld(refpoint)
 	ent:SetAngles(angles)
-	--ent:SetPos(ent:LocalToWorld(refpoint*-1))
+	ent:SetPos(ent:GetPos()+(pos-ent:LocalToWorld(refpoint)))
 	return true
 end
 
@@ -95,9 +97,9 @@ end
 
 function TOOL.BuildCPanel( CPanel )
 	CPanel:AddControl( "Header", { Description = "#tool.mover.help" } )
-	CPanel:AddControl( "Slider", { Label = "#tool.mover.movex", Command = "mover_movex", Type = "Float", Min = -50, Max = 50, Help = false } )
-	CPanel:AddControl( "Slider", { Label = "#tool.mover.movey", Command = "mover_movey", Type = "Float", Min = -50, Max = 50, Help = false } )
-	CPanel:AddControl( "Slider", { Label = "#tool.mover.movez", Command = "mover_movez", Type = "Float", Min = -50, Max = 50, Help = false } )
+	CPanel:AddControl( "Slider", { Label = "#tool.mover.movex", Command = "mover_movex", Type = "Float", Min = -50, Max = 50, Help = true } )
+	CPanel:AddControl( "Slider", { Label = "#tool.mover.movey", Command = "mover_movey", Type = "Float", Min = -50, Max = 50, Help = true } )
+	CPanel:AddControl( "Slider", { Label = "#tool.mover.movez", Command = "mover_movez", Type = "Float", Min = -50, Max = 50, Help = true } )
 	CPanel:AddControl( "CheckBox", { Label = "#tool.mover.lifter", Command = "mover_lifter", Help = false } )
 
 	CPanel:AddControl( "Slider", { Label = "#tool.mover.moveang", Command = "mover_moveang", Type = "Float", Min = -90, Max = 90, Help = true } )
