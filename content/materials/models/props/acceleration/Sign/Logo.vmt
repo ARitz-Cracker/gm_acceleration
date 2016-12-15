@@ -1,0 +1,14 @@
+VertexLitGeneric
+{
+	$basetexture	models/props/acceleration/sign/all_color
+	$surfaceprop	metal
+
+	$nodiffusebumplighting 1
+	$bumpmap		models/props/acceleration/sign/all_nrm
+	
+	$envmap			env_cubemap
+	$envmaptint "[0.5 0.5 0.5]"
+	//$envmapmask		models/props/acceleration/sign/all_spec
+}
+
+//TODO: https://developer.valvesoftware.com/wiki/$ambientocclusion

@@ -46,7 +46,19 @@ function EFFECT:Render()
 
 	if ( not IsValid( self.Checkpoint ) ) then return end
 	
-	render.SetMaterial( self.Mat )
+	local size = 64
+	
+	self.Attachment = self.Checkpoint:GetAttachment( self.AttachmentID )
+	self.StartPos = self.Attachment.Pos
+	self.EndPos = self.Attachment.Pos + self.Attachment.Ang:Up() * size
+	
+	self:RenderEffect( self.StartPos, self.EndPos )
+	
+end
 
-	render.DrawBeam( self.StartPos, self.EndPos, 16, 1, 0, Color( 0, 255, 0, 255 ) )
+function EFFECT:RenderEffect( Start, End )
+
+	render.SetMaterial( self.Mat )
+	render.DrawBeam( Start, End, 16, 1, 0, Color( 0, 255, 0, 255 ) )
+
 end
