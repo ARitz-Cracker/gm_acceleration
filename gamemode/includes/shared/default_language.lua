@@ -41,6 +41,11 @@ Car.Msgs.PitstopMsgs.NotInPitstop = "You are not in your garage"
 Car.Msgs.PitstopMsgs.ToolNotInPitstop = "You cannot use a tool outside your garage"
 Car.Msgs.PitstopMsgs.ToolNotAcceleration = "You can only use the remover or tools from the \"Acceleration\" category"
 Car.Msgs.PitstopMsgs.NoBuild = "Your garage is not in BUILD mode"
+Car.Msgs.PitstopMsgs.MassCenterWarning = "Acceleration uses a different welding method then the default weld tool.\nThis method is a lot less laggy, but the center of mass _will_ be the center of the car.\nThis means that, for example, if you put a bunch of heavy things on the back but light things on the front, the back will NOT weigh more than the front. Instead, the weight will be distributed evenly throughout your car. All your props will also be converted to have \"metal\" physical properties."
+Car.Msgs.PitstopMsgs.NoSeat = "Your car has no seat."
+Car.Msgs.PitstopMsgs.NoWheels = "Your car must have 2 or more wheels."
+Car.Msgs.PitstopMsgs.NoProp = "Your car must have at least 1 prop."
+Car.Msgs.PitstopMsgs.TooComplex = "Your car's collision model is to complex! Try turning some props into effects. (NOTE: Effects will be added in the future)"
 
 Car.Msgs.tool = Car.Msgs.tool or {}
 Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}

@@ -171,7 +171,7 @@ function ENT:PhysicsUpdate( phys )
 	for k,v in pairs(self.CollidePositions) do
 		for i=1,#v do
 			local hitPoint = self:LocalToWorld( v[i] )
-			local isolatedSpeed = self.phys:LocalToWorldVector(self.phys:WorldToLocalVector(self:GetPointVelocity(hitPoint))*self.WheelCutAxis)
+			local isolatedSpeed = self.phys:LocalToWorldVector(self.phys:WorldToLocalVector(self:GetPointVelocity(hitPoint))*self.WheelCutAxis) -- TODO: Make this work with moving platforms
 			if isolatedSpeed:LengthSqr() > 0.2 then
 				phys:ApplyForceOffset( phys:GetMass() * isolatedSpeed*-0.4/len, hitPoint )
 			end

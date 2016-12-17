@@ -87,7 +87,7 @@ function ENT:Initialize()
 	self.IsPitstop = true
 	self.Whitelist = {}
 	
-	self.LifterPos = self:OBBCenter() - Vector(0,0,170)
+	self.LifterPos = self:OBBCenter() - Vector(0,0,156)
 	self.LifterAng = angle_zero
 	self.LifterPosLast = self.LifterPos
 	self.LifterAngLast = self.LifterAng
@@ -116,6 +116,7 @@ function ENT:CreateLifter()
 	self.Lifter:SetRenderMode(RENDERMODE_NONE)
 	self.Lifter.CarFrozenEnt = true
 	self.Lifter:DrawShadow( false ) 
+	self.Lifter:SetSolid( SOLID_NONE ) 
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then

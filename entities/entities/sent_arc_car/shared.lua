@@ -22,4 +22,8 @@ ENT.Instructions 	= ""
 
 ENT.Spawnable = false
 ENT.AdminOnly = false
---ENT.CarFrozenEnt = true
+--ENT.RenderGroup = RENDERGROUP_BOTH --UNCOMMENT WHEN EFFECTS ARE ADDED
+
+function ENT:SetupDataTables()
+	self:NetworkVar( "Entity", 0, "Driver" )
+end

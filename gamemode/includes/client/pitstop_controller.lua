@@ -184,6 +184,8 @@ local function SaveMenu(save)
 	end
 end
 
+local nagCenter = true
+
 list.Set( "DesktopWindows", "AccelerationGarageControl", {
 
 	title		= "Garage Control",
@@ -278,7 +280,12 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		local DButton = vgui.Create( "DButton" )
 		DButton:SetText( "Deploy Car" )
 		DButton.DoClick = function(self)
-		
+			if nagCenter then
+				Derma_Message( Car.Msgs.PitstopMsgs.MassCenterWarning, "Acceleration", Car.Msgs.Generic.OK )
+				nagCenter = false
+			end
+			net.Start("car_pitcontrol_deploy")
+			net.SendToServer()
 		end
 		DermaList:AddItem( DButton )
 		--END FILE LIST
