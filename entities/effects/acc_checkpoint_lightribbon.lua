@@ -42,6 +42,8 @@ function EFFECT:Think()
 	if ( not IsValid( self.Checkpoint ) ) then return end
 	if ( self.Checkpoint.IsSlave ) then return false end
 	
+	print( self.Checkpoint:GetCounterpart() )
+	
 	if ( IsValid( self.Checkpoint:GetCounterpart()) ) then
 	
 		if ( not self.Verts ) then

@@ -74,6 +74,8 @@ function Car.InitializeCheckpoints( )
 		
 		Car.Checkpoints[checkpointID] = { MasterCheckpoint, SlaveCheckpoint}
 	end
+	
+	hook.Run( "AccelerationCheckpointsLoaded", Car.Checkpoints )
 
 end
 
