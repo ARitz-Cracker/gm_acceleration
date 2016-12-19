@@ -1,10 +1,49 @@
 
 AddCSLuaFile()
+local savingFile = false
+local loadingFile = false
 local function DoShit(file,save)
-	MsgN(file)
---DFileBrowser:OnDoubleClick( string filePath, Panel selectedPanel )
+	if save then
+		if savingFile then
+			Derma_Message( Car.Msgs.Generic.SaveWait, "Acceleration", Car.Msgs.Generic.OK )
+			return
+		end
+		savingFile = file
+		net.Start("car_pitcontrol_save")
+		net.SendToServer()
+		
+	else
+		if loadingFile then
+			Derma_Message( Car.Msgs.Generic.LoadWait, "Acceleration", Car.Msgs.Generic.OK )
+			return
+		end
+		loadingFile = true
+		ARCLib.SendBigMessage("car_pitcontrol_save_dl",file.Read(file,"DATA") or "",ply,function(err,per)
+			if err == ARCLib.NET_UPLOADING then
+				chat.AddText( "Loading car... "..math.floor(per*100).."%" )
+			elseif err == ARCLib.NET_COMPLETE then
+				chat.AddText( "Loaded car! " )
+				loadingFile = false
+			else
+				chat.AddText( "Loading car error! "..err )
+				loadingFile = false
+			end
+		end) 
+	end
 end
-
+ARCLib.ReceiveBigMessage("car_pitcontrol_save_dl",function(err,per,data,ply)
+	if err == ARCLib.NET_DOWNLOADING then
+		chat.AddText( "Saving car... "..math.floor(per*100).."%" )
+	elseif err == ARCLib.NET_COMPLETE then
+		if savingFile then
+			file.Write(savingFile,data)
+			chat.AddText( "Saved car as "..savingFile )
+		end
+	else
+		chat.AddText( "Saving car error! "..err )
+	end
+end)
+--Car.Msgs.Generic.SaveWait
 
 local function SaveMenu(save)
 	local basefol = Car.Dir.."/saved_cars"

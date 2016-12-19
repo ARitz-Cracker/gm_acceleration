@@ -67,13 +67,16 @@ function ENT:Initialize()
 	
 	for k,v in ipairs(self.Wheels) do
 		v.Ent:SetParent()
-		constraint.Weld( self, v.Ent, 0, 0, 0, true, false )
+		constraint.NoCollide( self, v.Ent, 0, 0 ) 
+		constraint.Weld( self, v.Ent, 0, 0, 0, false, false ) -- TODO: Suspension
 		--v.Ent:EnableSki()
 	end
 	for k,v in ipairs(self.Seats) do
 		v.Ent:SetParent()
-		constraint.Weld( self, v.Ent, 0, 0, 0, true, false )
+		constraint.NoCollide( self, v.Ent, 0, 0 ) 
+		constraint.Weld( self, v.Ent, 0, 0, 0, false, false ) -- Should I parent the seat to the car instead of welding it?
 	end
+	self.Seats[1].Ent.AccelerationCar = self
 	if IsValid(lifter) then
 		lifter:Remove()
 	end
@@ -82,7 +85,7 @@ end
 net.Receive("car_car_looks",function(len,ply)
 	local ent = net.ReadEntity()
 	if IsValid(ent) and ent:GetClass() == "sent_arc_car" then
-		ARCLib.SendBigMessage("car_car_looks_dl",ent.PropString,ply,NULLFUNC) -- TODO: Get errors and report them
+		ARCLib.SendBigMessage("car_car_looks_dl",ent.PropString,ply,NULLFUNC) -- TODO: Get errors and report them/do something when a client couldn't get the properties
 	end
 end)
 
@@ -116,12 +119,202 @@ function ENT:SetProperties(props)
 	end
 	self.Seats = props["prop_vehicle_prisoner_pod"]
 	self.Wheels = props["sent_arc_wheel"]
+	self.WheelForce = self.CarForce / #self.Wheels -- TODO: Front/back wheel drive options instead of AWD.
 	
 	self.Props = props["prop_physics"]
 end
 
-function ENT:Think()
+--START CAR LOGIC
+ENT.CarForce = 100
+ENT.MaxSpeed = 1500 -- In inches per second
 
+local car_keys = { -- HAHA PUNS ;)))))
+	[IN_FORWARD] = true,
+	[IN_MOVELEFT] = true,
+	[IN_BACK] = true,
+	[IN_MOVERIGHT] = true,
+	[IN_ATTACK] = true,
+	[IN_ATTACK2] = true,
+	[IN_RELOAD] = true,
+	[IN_JUMP] = true,
+	[IN_SPEED] = true,
+	[IN_ZOOM] = true,
+	[IN_WALK] = true,
+	[IN_LEFT] = true,
+	[IN_RIGHT] = true,
+}
+Car.DefaultCarData = function()
+	local CarData = {}
+	CarData.SoundGears = 5
+	CarData.SoundCurrentGear = 0
+
+	CarData.SoundStart = "vehicles/v8/v8_start_loop1.wav"
+	CarData.SoundStartPitch = 100
+
+	CarData.SoundIdle = "vehicles/v8/v8_idle_loop1.wav"
+	CarData.SoundIdlePitch = 100
+
+	CarData.SoundAccelerate = "vehicles/v8/v8_firstgear_rev_loop1.wav" --"vehicles/v8/fourth_cruise_loop2.wav" --"vehicles/v8/v8_firstgear_rev_loop1.wav"
+	CarData.SoundAcceleratePitchStart = 80
+	CarData.SoundAcceleratePitchEnd = 120
+
+	CarData.SoundBoost = "vehicles/v8/v8_turbo_on_loop1.wav"
+	CarData.SoundBoostPitchStart = 80
+	CarData.SoundBoostPitchEnd = 120
+
+	CarData.SoundDecelerateFast = "vehicles/v8/v8_throttle_off_fast_loop1.wav"
+	CarData.SoundDecelerateMedium = "vehicles/v8/v8_throttle_off_slow_loop2.wav"
+	CarData.SoundDecelerateSlow = "vehicles/v8/v8_rev_short_loop1.wav"
+	CarData.SoundDeceleratePitchStart = 120
+	CarData.SoundDeceleratePitchEnd = 95
+
+	CarData.SoundStop = "vehicles/v8/v8_stop1.wav"
+	CarData.SoundStopPitch = 100
+	return CarData
+end
+
+ENT.CarData = Car.DefaultCarData()
+
+hook.Add( "KeyPress", "Acceleration CarPress", function( ply, key )
+	if (not car_keys[key]) then return end
+	local car = ply:GetVehicle().AccelerationCar
+	if IsValid(car) then
+		car:KeyPress(key)
+	end
+end)
+
+hook.Add( "KeyRelease", "Acceleration CarRelease", function( ply, key )
+	if (not car_keys[key]) then return end
+	local car = ply:GetVehicle().AccelerationCar
+	if IsValid(car) then
+		car:KeyRelease(key)
+	end
+end)
+hook.Add( "PlayerEnteredVehicle", "Acceleration CarEnter", function( ply, veh, role )
+	local car = veh.AccelerationCar
+	if IsValid(car) then
+		car:EnableCar()
+	end
+end)
+hook.Add( "PlayerLeaveVehicle", "Acceleration CarEnter", function( ply, veh, role )
+	local car = veh.AccelerationCar
+	if IsValid(car) then
+		car:DisableCar()
+	end
+end)
+
+function ENT:KeyPress(key)
+	self.CarForce = 10000
+	self.WheelForce = self.CarForce / #self.Wheels
+	if key == IN_FORWARD then
+		if self.CSoundDecelerate then
+			self.CSoundDecelerate:FadeOut(0.1)
+		end
+		if self.CSoundIdle then
+			self.CSoundIdle:FadeOut(0.1)
+		end
+		
+		if self.CSoundAccelerate then
+			MsgN("IS PLAYING: "..tostring(self.CSoundAccelerate:IsPlaying()))
+			self.CSoundAccelerate:Stop()
+		end
+		self.CSoundAccelerate = CreateSound(self,self.CarData.SoundAccelerate)
+		self.CSoundAccelerate:PlayEx( 1, self.CarData.SoundAcceleratePitchStart )
+	
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetForce(self.WheelForce)
+		end
+		self.SAccelerate = true
+		
+	elseif key == IN_JUMP then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:DisableSki()
+		end
+	end
+end
+function ENT:KeyRelease(key)
+	if key == IN_FORWARD then
+		if self.CSoundAccelerate then
+			self.CSoundAccelerate:FadeOut(0.1)
+		end
+		if self.CSoundIdle then
+			self.CSoundIdle:FadeOut(0.1)
+		end
+		if self.CSoundDecelerate then
+			self.CSoundDecelerate:Stop()
+		end
+		local speeds = self.MaxSpeed / 3
+		local speed = self:GetVelocity():Length()
+		
+		if speed >= speeds*2 then
+			self.CSoundDecelerate = CreateSound(self,self.CarData.SoundDecelerateFast)
+		elseif speed >= speeds*0.5 then
+			self.CSoundDecelerate = CreateSound(self,self.CarData.SoundDecelerateMedium)
+		else
+			self.CSoundDecelerate = CreateSound(self,self.CarData.SoundDecelerateSlow)
+		end
+		
+		self.CSoundDecelerate:PlayEx( 1, self.CarData.SoundDeceleratePitchStart )
+		-- 
+		
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetForce(0)
+		end
+		self.SAccelerate = false
+	elseif key == IN_JUMP then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:EnableSki()
+		end
+	end
+end
+
+function ENT:EnableCar()
+	self.EngineOn = true
+	self.CSoundIdle = CreateSound(self,self.CarData.SoundStart)
+	self.CSoundIdle:PlayEx( 1, self.CarData.SoundStartPitch )
+	for k,v in ipairs(self.Wheels) do
+		v.Ent:EnableSki()
+	end
+end
+
+function ENT:DisableCar()
+	for k,v in pairs(car_keys) do
+		self:KeyRelease(k)
+	end
+	for k,v in ipairs(self.Wheels) do
+		v.Ent:DisableSki()
+	end
+	self.EngineOn = false
+	self.CSoundIdle:Stop()
+	if self.CSoundAccelerate then
+		self.CSoundAccelerate:Stop()
+	end
+	if self.CSoundBoost then
+		self.CSoundBoost:Stop()
+	end
+	if self.CSoundDecelerate then
+		self.CSoundDecelerate:Stop()
+	end
+	
+	self:EmitSound( self.CarData.SoundStop, 72, self.CarData.SoundStopPitch)
+end
+
+function ENT:Think()
+	if self.EngineOn then
+		local speed = self:GetVelocity():Length()
+		if self.SAccelerate then
+			local maxGearSpeed = self.MaxSpeed/self.CarData.SoundGears
+			self.CSoundAccelerate:ChangePitch( self.CarData.SoundAcceleratePitchStart + (speed%(maxGearSpeed))/maxGearSpeed*(self.CarData.SoundAcceleratePitchEnd-self.CarData.SoundAcceleratePitchStart), 0.3 ) 
+		else
+			if speed > 120 then
+				self.CSoundDecelerate:ChangePitch( self.CarData.SoundDeceleratePitchStart + (((speed/self.MaxSpeed)*-1) + 1)*(self.CarData.SoundDeceleratePitchEnd-self.CarData.SoundDeceleratePitchStart), 0.3 )
+			elseif not self.CSoundIdle:IsPlaying() then
+				self.CSoundDecelerate:FadeOut(0.4)
+				self.CSoundIdle = CreateSound(self,self.CarData.SoundIdle)
+				self.CSoundIdle:PlayEx( 1, self.CarData.SoundIdlePitch )
+			end
+		end
+	end
 end
 
 function ENT:PhysicsCollide( data, phys )
@@ -129,7 +322,18 @@ function ENT:PhysicsCollide( data, phys )
 end
 
 function ENT:OnRemove()
-
+	if self.CSoundIdle then
+		self.CSoundIdle:Stop()
+	end
+	if self.CSoundAccelerate then
+		self.CSoundAccelerate:Stop()
+	end
+	if self.CSoundBoost then
+		self.CSoundBoost:Stop()
+	end
+	if self.CSoundDecelerate then
+		self.CSoundDecelerate:Stop()
+	end
 end
 
 function ENT:Use(activator, caller, type, value)

@@ -8,6 +8,7 @@ include('shared.lua')
 ENT.ARitzDDProtected = true
 
 util.AddNetworkString("car_wheel_axis")
+util.AddNetworkString("car_wheel_debug")
 function ENT:Initialize()
 	self:SetModel( "models/xeon133/racewheelskinny/race-wheel-40_s.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
@@ -30,7 +31,10 @@ function ENT:Initialize()
 end
 
 function ENT:EnableSki()
-	self.phys:SetMaterial( "gmod_ice" ) 
+	self.phys:SetMaterial( "friction_10" )
+	
+	--self.phys:SetMaterial( "car_tire" )
+	self.LastPhysUpdate = CurTime()
 	self.Enabled = true
 	net.Start("car_wheel_axis")
 	net.WriteEntity(self)
@@ -75,11 +79,12 @@ function ENT:SpawnFunction( ply, tr )
 	blarg:SetPos(tr.HitPos + tr.HitNormal * 40)
 	blarg:Spawn()
 	blarg:Activate()
+	blarg.Ply = ply
 	return blarg
 end
 
 function ENT:Think()
-	if not self.Enabled then return end
+	--if not self.Enabled then return end
 	local selfpos = self:GetPos()
 	local edited = false
 	for k,v in pairs(self.CollidePositions) do
@@ -87,12 +92,17 @@ function ENT:Think()
 			--v.HitPos-v.OurPos
 			local tablen = #v
 			for i=tablen,1,-1 do
+				local remov = true
 				local trace = {}
 				trace.start = selfpos
-				trace.endpos = self:LocalToWorld( v[i]*1.3 )
+				trace.endpos = self:LocalToWorld( v[i]+v[i]:GetNormalized() )
 				trace.filter = self
-				local tr = util.TraceLine( trace )
-				if !tr.Hit or tr.Entity != k then
+				local tr = util.TraceLine( trace ) 
+				remov = !tr.Hit or tr.Entity != k
+				if !remov then
+					-- TODO: Check if hitnormal is at the angle we want
+				end
+				if remov then
 					table.remove(v,i)
 					if #v == 0 then
 						self.CollidePositions[k] = nil
@@ -105,6 +115,14 @@ function ENT:Think()
 			edited = true
 		end
 	end
+	
+	
+	net.Start("car_wheel_debug")
+	net.WriteEntity(self)
+	net.WriteTable(self.CollidePositions)
+	net.Broadcast()
+--	self:NextThink(CurTime())
+--	return true
 end
 
 function ENT:CalculateAverageHitPos(tab)
@@ -126,22 +144,22 @@ end
 function ENT:PhysicsCollide( data, phys )
 	local pos = self:WorldToLocal(data.HitPos)
 	if not self.CollidePositions[data.HitEntity] then
-		self.CollidePositions[data.HitEntity] = {pos,pos}
+		self.CollidePositions[data.HitEntity] = {pos}
 	else
 		local tab = self.CollidePositions[data.HitEntity]
 		local addToEnd = true
-		for i=1,#tab-1 do
-			if tab[i]:IsEqualTol( pos, 10 ) then
+		for i=1,#tab do
+			if tab[i]:IsEqualTol( pos, 2 ) then -- There has to be a better way to do this
 				tab[i] = pos
 				addToEnd = false
 				break
 			end
 		end
 		if addToEnd then
-			tab[#tab] = pos
+			tab[#tab+1] = pos
 		end
+		
 	end
-	
 end
 function ENT:OnRemove()
 
@@ -158,14 +176,23 @@ function ENT:SetForce(speed)
 		self.Speed = vector_origin
 	else
 		self.Speed = Vector(speed,speed,speed)*self.WheelCutAxis
+		if self.phys:IsAsleep() then
+			self.phys:Wake()
+		end
+		self.LastPhysUpdate = CurTime()
 	end
 end
 
-function ENT:PhysicsUpdate( phys )
+function ENT:PhysicsUpdate( phys ) --MAYBE: use PhysicsSimulate instead??
+
+
 	if not self.Enabled then return end
+	self.Friction = 8
+	local diff = CurTime() - self.LastPhysUpdate
+	self.LastPhysUpdate = CurTime()
 	local wheelForce
 	if self.Speed != vector_origin then
-		wheelForce = self.phys:LocalToWorldVector(Vector(0,300,0)*self.Direction)
+		wheelForce = self.phys:LocalToWorldVector(self.Speed*self.Direction)
 	end
 	local len = self:CollidePointAmount()
 	for k,v in pairs(self.CollidePositions) do
@@ -173,17 +200,19 @@ function ENT:PhysicsUpdate( phys )
 			local hitPoint = self:LocalToWorld( v[i] )
 			local isolatedSpeed = self.phys:LocalToWorldVector(self.phys:WorldToLocalVector(self:GetPointVelocity(hitPoint))*self.WheelCutAxis) -- TODO: Make this work with moving platforms
 			if isolatedSpeed:LengthSqr() > 0.2 then
-				phys:ApplyForceOffset( phys:GetMass() * isolatedSpeed*-0.4/len, hitPoint )
+				phys:ApplyForceOffset( phys:GetMass() * isolatedSpeed*-diff/len*self.Friction, hitPoint )
 			end
 			if wheelForce then
 				local speed = wheelForce:Cross( hitPoint - phys:LocalToWorld(phys:GetMassCenter()) )
-				phys:ApplyForceOffset( speed/len, hitPoint )
+				phys:ApplyForceOffset( speed/len*diff, hitPoint )
 			end
 		end
 	end
 end
 
 function ENT:Use(activator, caller, type, value)
+	if activator != self.Ply then return end
+	--if not IsValid(Car.GetPitstop(activator).Lifter) then return end
 	if math.abs(self:GetAngles().r) > 90 then
 		local welds = {}
 		for k,v in ipairs(constraint.GetTable(self)) do

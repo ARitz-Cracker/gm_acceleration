@@ -34,7 +34,7 @@ function TOOL:DoThing(ent,add)
 		if CLIENT then return true end
 	
 		if add then
-			local points = ent:GetPhysicsObject():GetMeshConvexes() -- TODO: Don't be lazy
+			local points = ent:GetPhysicsObject():GetMeshConvexes()
 			local within = true
 			for i=1,#points do
 				for ii=1,#points[i] do

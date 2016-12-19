@@ -47,7 +47,9 @@ hook.Add("CanTool","Acceleration ToolsOnlyInPitstop",function( ply, tr, tool )
 		return false
 	end
 end)
+local debugging = true
 local function checkFreeze(ply,ent)
+	if debugging then return nil end
 	if ent.CarFrozenEnt then return false end
 	local inPitstop = true
 	local pitstop = Car.GetPitstop(ply)

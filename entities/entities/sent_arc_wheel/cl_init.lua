@@ -12,16 +12,27 @@ function ENT:Initialize()
 	self.SkiWheel:SetAngles(self:GetAngles())
 	self.SkiWheel:SetParent(self)
 	self.SkiWheel:SetNoDraw(true)
+	self.DebugTab = {}
 end
 
 function ENT:Think()
-
+	if not self.Drawing then
+		self.UpdateModelPos = true
+	end
+	self.Drawing = false
 end
 color_red = Color(255,0,0,255)
 color_green = Color(0,255,0,255)
 color_blue = Color(0,0,255,255)
 
 function ENT:Draw()
+	self.Drawing = true
+	if self.UpdateModelPos then -- Shitty hack for when entity stops being in PVS
+		self.SkiWheel:SetPos(self:GetPos())
+		self.SkiWheel:SetAngles(self:GetAngles())
+		self.SkiWheel:SetParent(self)
+		self.UpdateModelPos = false
+	end
 	if self.Enabled then
 		if !self.Circumference then return end
 		--self.SkiWheel:SetPos(self:GetPos())
@@ -37,8 +48,19 @@ function ENT:Draw()
 		local ang = self.SkiWheel:GetAngles()
 		ang:RotateAroundAxis(ang:Right(), (l:Length()*sign/self.Circumference)*360)
 		self.SkiWheel:SetAngles(ang)
+	else
+		self.LastPos = self:GetPos()
 	end
 	self.SkiWheel:DrawModel()
+	--self:DrawModel()
+	for k,v in pairs(self.DebugTab) do
+		for kk,vv in ipairs(v) do
+			render.DrawLine( self:GetPos(), self:LocalToWorld(vv + vv:GetNormalized()), color_red, false )
+			render.DrawLine( self:GetPos(), self:LocalToWorld(vv), color_green, false )
+			render.DrawLine( self:GetPos(), self:LocalToWorld(vv*self.WheelMoveAxis), color_blue, false )
+			
+		end
+	end
 end
 function ENT:OnRemove()
 	if self.SkiWheel then
@@ -58,11 +80,11 @@ net.Receive("car_wheel_axis",function()
 	if dia == 0 then dia = 3 end
 	ent.Circumference = (ent:OBBMaxs()-ent:OBBMins())[string.char( dia + 119 )]*math.pi
 	ent.Enabled = enabled
-	if ent.Enabled then
-		ent.SkiWheel:SetPos(ent:GetPos())
-		ent.SkiWheel:SetAngles(ent:GetAngles())
-		ent.SkiWheel:SetParent(ent)
-	end
+end)
+net.Receive("car_wheel_debug",function()
+	local ent = net.ReadEntity()
+	if !IsValid(ent) then return end
+	ent.DebugTab = net.ReadTable()
 end)
 
 

@@ -1707,6 +1707,7 @@
 
 //	"strain"		"Rubber_Tire.Strain"
 
-	"friction"	"0.2"
-	"elasticity"	"0.2"
+	"friction"	"0.1"
+	"elasticity"	"0.1"
+	"audioroughnessfactor" "0.1"
 }

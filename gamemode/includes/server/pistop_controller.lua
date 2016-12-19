@@ -13,8 +13,13 @@ util.AddNetworkString("car_pitcontrol_angle")
 util.AddNetworkString("car_pitcontrol_pos")
 util.AddNetworkString("car_pitcontrol_save")
 util.AddNetworkString("car_pitcontrol_deploy")
+ARCLib.RegisterBigMessage("car_pitcontrol_save_dl",16384,255)
 local function GetPropList(ent,ply)
 	local lifter = Car.GetPitstop(ply).Lifter
+	if not IsValid(lifter) then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.PitstopMsgs.NoBuild, NOTIFY_ERROR, 5,true)
+		return
+	end
 	local properties = {}
 	properties["prop_physics"] = {}
 	properties["sent_arc_wheel"] = {}
@@ -69,11 +74,72 @@ local function GetPropList(ent,ply)
 	end
 	return properties
 end
+local defaultStuff = {}
+defaultStuff.number = 0
+defaultStuff.string = ""
+defaultStuff.boolean = false
 
 local function LoadPropList(properties,ply)
-
+	local lifter = Car.GetPitstop(ply).Lifter
+	if not IsValid(lifter) then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.PitstopMsgs.NoBuild, NOTIFY_ERROR, 5,true)
+		return
+	end
+	if table.Count( properties ) != 4 then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+		return
+	end
+	if not properties._CarData then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+		return
+	end
+	if not properties.prop_vehicle_prisoner_pod then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+		return
+	end
+	if not properties.sent_arc_wheel then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+		return
+	end
+	if not properties.prop_physics then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+		return
+	end
+	local defaultdata = Car.DefaultCarData()
+	for k,v in pairs(defaultdata) do
+		local typ = type(v)
+		properties._CarData[k] = _G["to"..typ](properties._CarData[k]) or defaultStuff[typ] -- That should stop client strangeness
+	end
+	
+	
+	lifter.CarData = properties._CarData
+	properties._CarData = nil
+	for class,v in pairs(properties) do
+		for i,a in ipairs(v) do
+			local ent = ents.Create(class) -- Before you yell at me, consider that I checked table.Count earlier
+			ent:SetModel(a.Mod or "file/that/doesnt/exist.mdl") -- TODO: Check if model is valid and small enough (THIS IS A PRETTY BIG EXPLOIT FIX BEFORE RELEASE)
+			ent:SetPos(lifter:LocalToWorld(Vector( a.Pos ) ))
+			ent:SetAngles(lifter:LocalToWorldAngles(Angle( a.Ang ) ))
+			--CONTINUE HERE
+		end
+	end
 end
-
+ARCLib.ReceiveBigMessage("car_pitcontrol_save_dl",function(err,per,data,ply)
+	if err == ARCLib.NET_DOWNLOADING then
+		--chat.AddText( "Saving car... "..math.floor(per*100).."%" )
+	elseif err == ARCLib.NET_COMPLETE then
+		if savingFile then
+			tab = util.JSONToTable(data)
+			if tab then
+				LoadPropList(tab,ply)
+			else
+				ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
+			end
+		end
+	else
+		Car.Msg("Failed receiving car from "..tostring(ply))
+	end
+end)
 
 net.Receive("car_pitcontrol_angle",function(msglen,ply)
 	local ent = Car.GetPitstop(ply)
@@ -86,6 +152,21 @@ net.Receive("car_pitcontrol_pos",function(msglen,ply)
 	if IsValid(ent) then
 		ent:SetLifterPos(ent:OBBCenter()-Vector(0,0,math.Clamp(net.ReadUInt(8),0,156)))
 	end
+end)
+net.Receive("car_pitcontrol_save",function(msglen,ply)
+	local lifter = Car.GetPitstop(ply).Lifter
+	if not IsValid(lifter) then
+		ARCLib.NotifyPlayer(ply,Car.Msgs.PitstopMsgs.NoBuild, NOTIFY_ERROR, 5,true)
+		return
+	end
+	local props = GetPropList(false,ply)
+	props._CarData = lifter.CarData
+	local data = util.TableToJSON(props)
+	if #data > 16384*255 then
+		ARCLib.NotifyPlayer(ply,"Your save file is too big! (4MB)", NOTIFY_ERROR, 5,true)
+		return
+	end
+	ARCLib.SendBigMessage("car_pitcontrol_save",data,ply,NULLFUNC) -- Client gets reported of the errors anyway. 
 end)
 
 net.Receive("car_pitcontrol_deploy",function(len,ply)
@@ -101,6 +182,7 @@ net.Receive("car_pitcontrol_deploy",function(len,ply)
 		ent:SetAngles(lifter:GetAngles())
 		ent:SetProperties(props)
 		ent:SetDriver(ply)
+		ent.CarData = lifter.CarData
 		ent:Spawn()
 	end
 end)

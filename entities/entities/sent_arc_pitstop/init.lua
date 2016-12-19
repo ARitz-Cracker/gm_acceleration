@@ -117,6 +117,7 @@ function ENT:CreateLifter()
 	self.Lifter.CarFrozenEnt = true
 	self.Lifter:DrawShadow( false ) 
 	self.Lifter:SetSolid( SOLID_NONE ) 
+	self.Lifter.CarData = Car.DefaultCarData()
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then

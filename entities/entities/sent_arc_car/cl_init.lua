@@ -14,16 +14,32 @@ include('shared.lua')
 
 function ENT:Initialize()
 	self.CSModels = {}
+	self.ModelPos = {}
+	self.ModelAng = {}
 	net.Start("car_car_looks")
 	net.WriteEntity(self)
 	net.SendToServer()
 end
 
 function ENT:Think()
-
+	if not self.Drawing then
+		self.UpdateModelPos = true
+	end
+	
+	self.Drawing = false
 end
 
 function ENT:Draw()
+	if self.UpdateModelPos then -- Shitty hack for when entity stops being in PVS
+		for k,v in ipairs(self.CSModels) do
+			v:SetPos(self:LocalToWorld(self.ModelPos[k]))
+			v:SetAngles(self:LocalToWorldAngles(self.ModelAng[k]))
+			v:SetParent(self)
+		end
+		self.UpdateModelPos = false
+	end
+
+	self.Drawing = true
 	for k,v in ipairs(self.CSModels) do
 		v:DrawModel()
 	end
@@ -46,6 +62,8 @@ ARCLib.ReceiveBigMessage("car_car_looks_dl",function(err,per,data,ply)
 		local tab = util.JSONToTable(data) -- LuaSCON HAS TO BE A THING SOON ;-;
 		local ent = Entity(table.remove(tab))
 		if not IsValid(ent) then return end
+		ent.ModelPos = {}
+		ent.ModelAng = {}
 		ent.CSModels = {}
 		ent.CSModelsi = 0
 		for k,v in ipairs(tab) do
@@ -65,9 +83,10 @@ ARCLib.ReceiveBigMessage("car_car_looks_dl",function(err,per,data,ply)
 			--csmodel:SetNoDraw(true)
 			csmodel:DrawShadow(true)
 			ent.CSModelsi = ent.CSModelsi + 1
+			ent.ModelPos[ent.CSModelsi] = v.Pos
+			ent.ModelAng[ent.CSModelsi] = v.Ang
 			ent.CSModels[ent.CSModelsi] = csmodel
 		end
-		PrintTable(ent.CSModels)
 	else
 		print("Car properties message errored! "..err)
 	end
