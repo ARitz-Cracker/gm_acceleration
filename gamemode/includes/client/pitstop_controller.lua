@@ -2,23 +2,27 @@
 AddCSLuaFile()
 local savingFile = false
 local loadingFile = false
-local function DoShit(file,save)
+local function DoShit(filename,save)
+	filename = string.lower(filename)
+	if string.sub(filename,#filename-3) != ".dat" then
+		filename = filename .. ".dat"
+	end
 	if save then
 		if savingFile then
 			Derma_Message( Car.Msgs.Generic.SaveWait, "Acceleration", Car.Msgs.Generic.OK )
 			return
 		end
-		savingFile = file
+		savingFile = filename
 		net.Start("car_pitcontrol_save")
 		net.SendToServer()
 		
-	else
+	elseif file.Exists(filename,"DATA") then
 		if loadingFile then
 			Derma_Message( Car.Msgs.Generic.LoadWait, "Acceleration", Car.Msgs.Generic.OK )
 			return
 		end
 		loadingFile = true
-		ARCLib.SendBigMessage("car_pitcontrol_save_dl",file.Read(file,"DATA") or "",ply,function(err,per)
+		ARCLib.SendBigMessage("car_pitcontrol_save_dl",file.Read(filename,"DATA") or "",ply,function(err,per)
 			if err == ARCLib.NET_UPLOADING then
 				chat.AddText( "Loading car... "..math.floor(per*100).."%" )
 			elseif err == ARCLib.NET_COMPLETE then
@@ -29,6 +33,8 @@ local function DoShit(file,save)
 				loadingFile = false
 			end
 		end) 
+	else
+		Derma_Message( Car.Msgs.Generic.InvalidFileName, "Acceleration", Car.Msgs.Generic.OK )
 	end
 end
 ARCLib.ReceiveBigMessage("car_pitcontrol_save_dl",function(err,per,data,ply)
@@ -70,6 +76,7 @@ local function SaveMenu(save)
 	end
 	function browser:OnDoubleClick( path, pnl )
 		DoShit((browser:GetCurrentFolder() or basefol).."/"..Filename:GetText(),save)
+		frame:Close()
 	end
 	
 	local Savebutt = vgui.Create( "DButton", frame )
@@ -82,6 +89,7 @@ local function SaveMenu(save)
 	Savebutt:SetSize( 96, 24 )
 	Savebutt.DoClick = function(self)
 		DoShit((browser:GetCurrentFolder() or basefol).."/"..Filename:GetText(),save)
+		frame:Close()
 	end
 	local Closebutt = vgui.Create( "DButton", frame )
 	Closebutt:SetText( Car.Msgs.Generic.Cancel )

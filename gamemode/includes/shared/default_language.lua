@@ -49,6 +49,7 @@ Car.Msgs.PitstopMsgs.NoSeat = "Your car has no seat."
 Car.Msgs.PitstopMsgs.NoWheels = "Your car must have 2 or more wheels."
 Car.Msgs.PitstopMsgs.NoProp = "Your car must have at least 1 prop."
 Car.Msgs.PitstopMsgs.TooComplex = "Your car's collision model is to complex! Try turning some props into effects. (NOTE: Effects will be added in the future)"
+Car.Msgs.PitstopMsgs.ModelBad = "%MODEL% is invalid! Maybe the server doesn't have it?"
 
 Car.Msgs.tool = Car.Msgs.tool or {}
 Car.Msgs.tool.snappy = Car.Msgs.tool.snappy or {}

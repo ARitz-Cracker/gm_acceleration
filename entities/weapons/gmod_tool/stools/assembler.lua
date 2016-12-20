@@ -34,18 +34,8 @@ function TOOL:DoThing(ent,add)
 		if CLIENT then return true end
 	
 		if add then
-			local points = ent:GetPhysicsObject():GetMeshConvexes()
-			local within = true
-			for i=1,#points do
-				for ii=1,#points[i] do
-					if not (lifter:WorldToLocal(ent:LocalToWorld(points[i][ii].pos)):WithinAABox( Car.LifterCarMins, Car.LifterCarMaxs ) ) then
-						within = false
-						break
-					end
-				end
-				if not within then break end
-			end
-			if within then
+
+			if Car.WithinLifter(lifter,ent) then
 				ent:SetParent( lifter )
 				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
 			else

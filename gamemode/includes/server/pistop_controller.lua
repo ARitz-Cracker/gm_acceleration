@@ -9,6 +9,21 @@
 	By Aritz Beobide-Cardinal (ARitz Cracker) && James R Swift (James xX)
  
 --------------------------------------------------------------------------------------]]--
+function Car.WithinLifter(lifter,ent)
+	local points = ent:GetPhysicsObject():GetMeshConvexes()
+	local within = true
+	for i=1,#points do
+		for ii=1,#points[i] do
+			if not (lifter:WorldToLocal(ent:LocalToWorld(points[i][ii].pos)):WithinAABox( Car.LifterCarMins, Car.LifterCarMaxs ) ) then
+				within = false
+				break
+			end
+		end
+		if not within then break end
+	end
+	return within
+end
+
 util.AddNetworkString("car_pitcontrol_angle")
 util.AddNetworkString("car_pitcontrol_pos")
 util.AddNetworkString("car_pitcontrol_save")
@@ -78,6 +93,17 @@ local defaultStuff = {}
 defaultStuff.number = 0
 defaultStuff.string = ""
 defaultStuff.boolean = false
+local function CheckValidProps(ply)
+	local lifter = Car.GetPitstop(ply).Lifter
+	if not IsValid(lifter) then
+		return
+	end
+	for k,v in ipairs(lifter:GetChildren()) do
+		if not IsValid(v:GetPhysicsObject()) or not Car.WithinLifter(lifter,v) then
+			v:Remove()
+		end
+	end
+end
 
 local function LoadPropList(properties,ply)
 	local lifter = Car.GetPitstop(ply).Lifter
@@ -114,15 +140,30 @@ local function LoadPropList(properties,ply)
 	
 	lifter.CarData = properties._CarData
 	properties._CarData = nil
-	for class,v in pairs(properties) do
+	for class,v in pairs(properties) do -- TODO: Use this in an ARCLib multithink function to prevent server lag
 		for i,a in ipairs(v) do
-			local ent = ents.Create(class) -- Before you yell at me, consider that I checked table.Count earlier
-			ent:SetModel(a.Mod or "file/that/doesnt/exist.mdl") -- TODO: Check if model is valid and small enough (THIS IS A PRETTY BIG EXPLOIT FIX BEFORE RELEASE)
-			ent:SetPos(lifter:LocalToWorld(Vector( a.Pos ) ))
-			ent:SetAngles(lifter:LocalToWorldAngles(Angle( a.Ang ) ))
-			--CONTINUE HERE
+			a.Mod = tostring(a.Mod)
+			if util.IsValidModel( a.Mod ) then
+				local ent = ents.Create(class) -- Before you yell at me, consider that I checked table.Count earlier
+				ent:SetModel(a.Mod)
+				ent:SetPos(lifter:LocalToWorld(Vector( a.Pos ) ))
+				ent:SetAngles(lifter:LocalToWorldAngles(Angle( a.Ang ) ))
+				for kk,vv in ipairs(v.BG or {}) do
+					ent:SetBodygroup( unpack(vv) ) -- TODO: Validate this shit
+				end
+				if isstring(a.Mat) then
+					ent:SetMaterial(a.Mat)
+				else
+					ent:SetSkin(tonumber(a.Skin) or 0)
+				end
+				ent:SetColor(v.Col or color_white)
+				ent:SetParent(lifter)
+			else
+				ARCLib.NotifyPlayer(ply,ARCLib.PlaceholderReplace(Car.Msgs.PitstopMsgs.ModelBad,{MODEL=a.Mod}), NOTIFY_ERROR, 6,true)
+			end
 		end
 	end
+	timer.Simple(0,function() CheckValidProps(ply) end)
 end
 ARCLib.ReceiveBigMessage("car_pitcontrol_save_dl",function(err,per,data,ply)
 	if err == ARCLib.NET_DOWNLOADING then
@@ -166,7 +207,15 @@ net.Receive("car_pitcontrol_save",function(msglen,ply)
 		ARCLib.NotifyPlayer(ply,"Your save file is too big! (4MB)", NOTIFY_ERROR, 5,true)
 		return
 	end
-	ARCLib.SendBigMessage("car_pitcontrol_save",data,ply,NULLFUNC) -- Client gets reported of the errors anyway. 
+	ARCLib.SendBigMessage("car_pitcontrol_save_dl",data,ply,function(err,per)
+		if err == ARCLib.NET_UPLOADING then
+			Car.Msg("Sending car to "..tostring(ply).."... "..math.floor(per*100).."%")
+		elseif err == ARCLib.NET_COMPLETE then
+			Car.Msg("Sent car to "..tostring(ply))
+		else
+			Car.Msg("Sending car error! "..err.." "..tostring(ply))
+		end
+	end)
 end)
 
 net.Receive("car_pitcontrol_deploy",function(len,ply)
