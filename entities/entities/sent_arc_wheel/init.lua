@@ -72,6 +72,10 @@ function ENT:SetWheelAxis(axis)
 	net.WriteBool(self.Enabled)
 	net.Broadcast()
 	self.WheelAxis = axis
+	
+	local dia = string.byte(self.WheelAxis) - 1
+	if dia == 119 then dia = 122 end
+	self.Radius = (self:OBBMaxs()-self:OBBMins())[string.char( dia )]/2--*math.pi
 end
 function ENT:SpawnFunction( ply, tr )
  	if ( !tr.Hit ) then return end
@@ -94,14 +98,42 @@ function ENT:Think()
 			for i=tablen,1,-1 do
 				local remov = true
 				local trace = {}
+				--local norm = v[i]:GetNormalized()
 				trace.start = selfpos
-				trace.endpos = self:LocalToWorld( v[i]+v[i]:GetNormalized() )
+				trace.endpos = self:LocalToWorld( v[i]--[[+norm]] )
 				trace.filter = self
 				local tr = util.TraceLine( trace ) 
 				remov = !tr.Hit or tr.Entity != k
 				if !remov then
 					-- TODO: Check if hitnormal is at the angle we want
+					--local a = tr.HitNormal:Angle()-(norm*-1):Angle()
+					--a:Normalize()
+					--PrintMessage(HUD_PRINTTALK,tostring(a))
+					--if math.abs(a.p) > 12 then -- TODO: THIS ONLY WORKS WITH Y AS THE AXIS AND WITH A SPECIFIC COLLISION MODEL!
+						--PrintMessage(HUD_PRINTTALK,tostring(a.p))
+						--remov = true
+					--end
 				end
+				
+				--[[
+				if !remov then
+					remov = tr.Fraction < 0.85
+					if remov then
+						MsgN(tr.Fraction)
+					end
+				end
+				]]
+				
+				--Almost completly unreliable because of vPhysics shenanigans
+				--[[
+				if !remov then
+					remov = (v[i]*self.WheelMoveAxis):LengthSqr() > (self.Radius+1) ^ 2
+					if remov then
+						MsgN(tostring((v[i]*self.WheelMoveAxis):LengthSqr()).." > "..tostring((self.Radius+1) ^ 2 ))
+					end
+				end
+				]]
+				
 				if remov then
 					table.remove(v,i)
 					if #v == 0 then
@@ -109,6 +141,7 @@ function ENT:Think()
 					end
 					edited = true
 				end
+				
 			end
 		else
 			self.CollidePositions[k] = nil
@@ -142,21 +175,24 @@ end
 
 
 function ENT:PhysicsCollide( data, phys )
-	local pos = self:WorldToLocal(data.HitPos)
+	local pos = self.phys:WorldToLocal(data.HitPos)--:Normalize()
+	local correctedPos = pos:GetNormalized()*self.WheelMoveAxis*(self.Radius+2.2) + pos*self.WheelCutAxis
+	
+	
 	if not self.CollidePositions[data.HitEntity] then
-		self.CollidePositions[data.HitEntity] = {pos}
+		self.CollidePositions[data.HitEntity] = {correctedPos}
 	else
 		local tab = self.CollidePositions[data.HitEntity]
 		local addToEnd = true
 		for i=1,#tab do
-			if tab[i]:IsEqualTol( pos, 2 ) then -- There has to be a better way to do this
-				tab[i] = pos
+			if tab[i]:IsEqualTol( correctedPos, 2 ) then -- There has to be a better way to do this
+				--tab[i] = correctedPos
 				addToEnd = false
 				break
 			end
 		end
 		if addToEnd then
-			tab[#tab+1] = pos
+			tab[#tab+1] = correctedPos
 		end
 		
 	end
@@ -195,18 +231,30 @@ function ENT:PhysicsUpdate( phys ) --MAYBE: use PhysicsSimulate instead??
 		wheelForce = self.phys:LocalToWorldVector(self.Speed*self.Direction)
 	end
 	local len = self:CollidePointAmount()
+	
+	local avgHitPoint = vector_origin
 	for k,v in pairs(self.CollidePositions) do
 		for i=1,#v do
 			local hitPoint = self:LocalToWorld( v[i] )
+			avgHitPoint = avgHitPoint + hitPoint
 			local isolatedSpeed = self.phys:LocalToWorldVector(self.phys:WorldToLocalVector(self:GetPointVelocity(hitPoint))*self.WheelCutAxis) -- TODO: Make this work with moving platforms
 			if isolatedSpeed:LengthSqr() > 0.2 then
-				phys:ApplyForceOffset( phys:GetMass() * isolatedSpeed*-diff/len*self.Friction, hitPoint )
+				phys:ApplyForceOffset( (phys:GetMass() * isolatedSpeed*-diff*self.Friction)/len, hitPoint )
 			end
+			--[[
 			if wheelForce then
 				local speed = wheelForce:Cross( hitPoint - phys:LocalToWorld(phys:GetMassCenter()) )
-				phys:ApplyForceOffset( speed/len*diff, hitPoint )
+				phys:ApplyForceOffset( speed/len*diff, hitPoint ) -- TODO: Change back to hitPoint once stability issues are resolved
 			end
+			]]
 		end
+	end
+	
+	--Temporary "Fix" until above commented out code is fixed
+	avgHitPoint = avgHitPoint / len
+	if wheelForce then
+		local speed = wheelForce:Cross( avgHitPoint - phys:LocalToWorld(phys:GetMassCenter()) )
+		phys:ApplyForceOffset( speed*diff, avgHitPoint )
 	end
 end
 

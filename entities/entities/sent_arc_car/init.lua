@@ -156,7 +156,7 @@ Car.DefaultCarData = function()
 
 	CarData.SoundAccelerate = "vehicles/v8/v8_firstgear_rev_loop1.wav" --"vehicles/v8/fourth_cruise_loop2.wav" --"vehicles/v8/v8_firstgear_rev_loop1.wav"
 	CarData.SoundAcceleratePitchStart = 80
-	CarData.SoundAcceleratePitchEnd = 120
+	CarData.SoundAcceleratePitchEnd = 135
 
 	CarData.SoundBoost = "vehicles/v8/v8_turbo_on_loop1.wav"
 	CarData.SoundBoostPitchStart = 80
@@ -204,22 +204,24 @@ hook.Add( "PlayerLeaveVehicle", "Acceleration CarEnter", function( ply, veh, rol
 end)
 
 function ENT:KeyPress(key)
-	self.CarForce = 10000
+	self.CarForce = 20000
 	self.WheelForce = self.CarForce / #self.Wheels
 	if key == IN_FORWARD then
 		if self.CSoundDecelerate then
-			self.CSoundDecelerate:FadeOut(0.1)
+			self.CSoundDecelerate:FadeOut(0.3)
 		end
 		if self.CSoundIdle then
-			self.CSoundIdle:FadeOut(0.1)
+			self.CSoundIdle:FadeOut(0.3)
 		end
-		
-		if self.CSoundAccelerate then
-			MsgN("IS PLAYING: "..tostring(self.CSoundAccelerate:IsPlaying()))
-			self.CSoundAccelerate:Stop()
+		if self.CSoundAccelerate and self.CSoundAccelerate:IsPlaying() and self:GetVelocity():Length() > 250 then
+			self.CSoundAccelerate:ChangeVolume( 1, 0.1 ) 
+		else
+			if self.CSoundAccelerate then
+				self.CSoundAccelerate:Stop()
+			end
+			self.CSoundAccelerate = CreateSound(self,self.CarData.SoundAccelerate)
+			self.CSoundAccelerate:PlayEx( 1, self.CarData.SoundAcceleratePitchStart )
 		end
-		self.CSoundAccelerate = CreateSound(self,self.CarData.SoundAccelerate)
-		self.CSoundAccelerate:PlayEx( 1, self.CarData.SoundAcceleratePitchStart )
 	
 		for k,v in ipairs(self.Wheels) do
 			v.Ent:SetForce(self.WheelForce)
@@ -235,7 +237,7 @@ end
 function ENT:KeyRelease(key)
 	if key == IN_FORWARD then
 		if self.CSoundAccelerate then
-			self.CSoundAccelerate:FadeOut(0.1)
+			self.CSoundAccelerate:ChangeVolume( 0, 0.1 ) 
 		end
 		if self.CSoundIdle then
 			self.CSoundIdle:FadeOut(0.1)
@@ -254,7 +256,7 @@ function ENT:KeyRelease(key)
 			self.CSoundDecelerate = CreateSound(self,self.CarData.SoundDecelerateSlow)
 		end
 		
-		self.CSoundDecelerate:PlayEx( 1, self.CarData.SoundDeceleratePitchStart )
+		self.CSoundDecelerate:PlayEx( 1, self.CarData.SoundDeceleratePitchStart + (((speed/self.MaxSpeed)*-1) + 1)*(self.CarData.SoundDeceleratePitchEnd-self.CarData.SoundDeceleratePitchStart) )
 		-- 
 		
 		for k,v in ipairs(self.Wheels) do

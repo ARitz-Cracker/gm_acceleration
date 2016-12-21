@@ -99,8 +99,11 @@ local function CheckValidProps(ply)
 		return
 	end
 	for k,v in ipairs(lifter:GetChildren()) do
-		if not IsValid(v:GetPhysicsObject()) or not Car.WithinLifter(lifter,v) then
+		local phys = v:GetPhysicsObject()
+		if not IsValid(phys) or not Car.WithinLifter(lifter,v) then
 			v:Remove()
+		else
+			phys:EnableMotion(false)
 		end
 	end
 end
@@ -136,7 +139,9 @@ local function LoadPropList(properties,ply)
 		local typ = type(v)
 		properties._CarData[k] = _G["to"..typ](properties._CarData[k]) or defaultStuff[typ] -- That should stop client strangeness
 	end
-	
+	for k,v in ipairs(lifter:GetChildren()) do
+		v:Remove()
+	end
 	
 	lifter.CarData = properties._CarData
 	properties._CarData = nil
@@ -144,11 +149,13 @@ local function LoadPropList(properties,ply)
 		for i,a in ipairs(v) do
 			a.Mod = tostring(a.Mod)
 			if util.IsValidModel( a.Mod ) then
+				print("***** "..class)
+				PrintTable(a)
 				local ent = ents.Create(class) -- Before you yell at me, consider that I checked table.Count earlier
 				ent:SetModel(a.Mod)
 				ent:SetPos(lifter:LocalToWorld(Vector( a.Pos ) ))
 				ent:SetAngles(lifter:LocalToWorldAngles(Angle( a.Ang ) ))
-				for kk,vv in ipairs(v.BG or {}) do
+				for kk,vv in ipairs(a.BG or {}) do
 					ent:SetBodygroup( unpack(vv) ) -- TODO: Validate this shit
 				end
 				if isstring(a.Mat) then
@@ -156,8 +163,11 @@ local function LoadPropList(properties,ply)
 				else
 					ent:SetSkin(tonumber(a.Skin) or 0)
 				end
-				ent:SetColor(v.Col or color_white)
+				ent:SetColor(a.Col or color_white)
 				ent:SetParent(lifter)
+				ent:Spawn()
+				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+				ent.Ply = ply
 			else
 				ARCLib.NotifyPlayer(ply,ARCLib.PlaceholderReplace(Car.Msgs.PitstopMsgs.ModelBad,{MODEL=a.Mod}), NOTIFY_ERROR, 6,true)
 			end
@@ -169,13 +179,13 @@ ARCLib.ReceiveBigMessage("car_pitcontrol_save_dl",function(err,per,data,ply)
 	if err == ARCLib.NET_DOWNLOADING then
 		--chat.AddText( "Saving car... "..math.floor(per*100).."%" )
 	elseif err == ARCLib.NET_COMPLETE then
-		if savingFile then
-			tab = util.JSONToTable(data)
-			if tab then
-				LoadPropList(tab,ply)
-			else
-				ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
-			end
+		tab = util.JSONToTable(data)
+		if tab then
+			Car.Msg(tostring(ply).." loaded a car!")
+			LoadPropList(tab,ply)
+		else
+			print("NOT JSON"..data)
+			ARCLib.NotifyPlayer(ply,Car.Msgs.Generic.SaveBad, NOTIFY_ERROR, 5,true)
 		end
 	else
 		Car.Msg("Failed receiving car from "..tostring(ply))

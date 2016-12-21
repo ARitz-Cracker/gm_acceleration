@@ -55,7 +55,7 @@ function ENT:Draw()
 	--self:DrawModel()
 	for k,v in pairs(self.DebugTab) do
 		for kk,vv in ipairs(v) do
-			render.DrawLine( self:GetPos(), self:LocalToWorld(vv + vv:GetNormalized()), color_red, false )
+			--render.DrawLine( self:GetPos(), self:LocalToWorld(vv + vv:GetNormalized()), color_red, false )
 			render.DrawLine( self:GetPos(), self:LocalToWorld(vv), color_green, false )
 			render.DrawLine( self:GetPos(), self:LocalToWorld(vv*self.WheelMoveAxis), color_blue, false )
 			

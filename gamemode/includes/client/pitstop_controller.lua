@@ -155,7 +155,7 @@ local function SaveMenu(save)
 		Derma_StringRequest( "Acceleration", Car.Msgs.Generic.FileName, name, function(text)
 			local GModNeedsAFuckingRenameFunction = file.Read(filename,"DATA")
 			local newfilename = path..text
-			file.Write(newfilename)
+			file.Write(newfilename,GModNeedsAFuckingRenameFunction)
 			if file.Exists(newfilename,"DATA") then
 				file.Delete(filename)
 				browser:SetBaseFolder( basefol )
