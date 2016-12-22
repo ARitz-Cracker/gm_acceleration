@@ -118,6 +118,7 @@ function ENT:CreateLifter()
 	self.Lifter:DrawShadow( false ) 
 	self.Lifter:SetSolid( SOLID_NONE ) 
 	self.Lifter.CarData = Car.DefaultCarData()
+	self:SetLifter(self.Lifter)
 end
 hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 	if ent1.IsPitstop then
@@ -126,7 +127,7 @@ hook.Add("ShouldCollide","Acceleration Forcefield",function(ent1,ent2)
 				ent1.Whitelist[k] = nil
 			end
 		end
-		if not ent1.Barrier or ent2 == ent1.Player or ent1.Whitelist[ent2] then
+		if not ent1.Barrier or ent2 == ent1:GetDriver() or ent1.Whitelist[ent2] then
 			return false
 		else
 			return true -- This is probably a bad idea. But nothing should come through the field anyway
@@ -145,8 +146,6 @@ net.Receive("car_pit_enable",function(msglen,ply)
 	net.Start("car_pit_enable")
 	net.WriteEntity(ent)
 	net.WriteBool(ent.Barrier)
-	net.WriteEntity(ent.Player)
-	net.WriteEntity(ent.Lifter)
 	net.Send(ply)
 end)
 function ENT:SpawnFunction( ply, tr )
@@ -155,7 +154,7 @@ function ENT:SpawnFunction( ply, tr )
 	blarg:SetPos(tr.HitPos)
 	blarg:Spawn()
 	blarg:Activate()
-	blarg.Player = ply
+	blarg:SetDriver(ply)
 	return blarg
 end
 
@@ -215,8 +214,6 @@ function ENT:EnableBarrier(doit)
 	net.Start("car_pit_enable")
 	net.WriteEntity(self)
 	net.WriteBool(doit)
-	net.WriteEntity(self.Player)
-	net.WriteEntity(self.Lifter)
 	net.Broadcast()
 	self.Barrier = doit 
 	self:CollisionRulesChanged()
@@ -265,6 +262,12 @@ end
 function ENT:OnRemove()
 	if IsValid(self.Lifter) then
 		self.Lifter:Remove()
+	end
+	for k,ent in ipairs(ents.GetAll()) do
+		if ent.Car_FieldSound then
+			ent.Car_FieldSound:Stop() 
+		end
+		ent.Car_FieldSound = nil
 	end
 end
 

@@ -15,7 +15,7 @@ local function DoShit(filename,save)
 		savingFile = filename
 		net.Start("car_pitcontrol_save")
 		net.SendToServer()
-		
+		Car.BuildChanges = false
 	elseif file.Exists(filename,"DATA") then
 		if loadingFile then
 			Derma_Message( Car.Msgs.Generic.LoadWait, "Acceleration", Car.Msgs.Generic.OK )
@@ -306,12 +306,15 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		DermaList:EnableVerticalScrollbar( true )
 		DCollapsible:SetContents( DermaList )
 		
+		--[[
 		local DButton = vgui.Create( "DButton" )
 		DButton:SetText( "Build mode" )
 		DButton.DoClick = function(self)
 		
 		end
+		
 		DermaList:AddItem( DButton )
+		]]
 		local DButton = vgui.Create( "DButton" )
 		DButton:SetText( "Load car" )
 		DButton.DoClick = function(self)
@@ -325,14 +328,31 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 		end
 		DermaList:AddItem( DButton )
 		local DButton = vgui.Create( "DButton" )
-		DButton:SetText( "Deploy Car" )
+		--]]
+		if IsValid(pitstop:GetLifter()) then
+			DButton:SetText( Car.Msgs.PitstopMsgs.DeployCar )
+		else
+			DButton:SetText( Car.Msgs.PitstopMsgs.BuildMode )
+		end
 		DButton.DoClick = function(self)
 			if nagCenter then
 				Derma_Message( Car.Msgs.PitstopMsgs.MassCenterWarning, "Acceleration", Car.Msgs.Generic.OK )
 				nagCenter = false
 			end
-			net.Start("car_pitcontrol_deploy")
-			net.SendToServer()
+			if IsValid(pitstop:GetLifter()) and Car.BuildChanges then
+				Derma_Query( Car.Msgs.PitstopMsgs.SaveAsk, "Acceleration", Car.Msgs.Generic.Yes, function()
+					SaveMenu(true)
+				end, Car.Msgs.Generic.No, function()
+					net.Start("car_pitcontrol_deploy")
+					net.SendToServer()
+					window:Close()
+				end)
+			else
+				net.Start("car_pitcontrol_deploy")
+				net.SendToServer()
+				Car.BuildChanges = false
+				window:Close()
+			end
 		end
 		DermaList:AddItem( DButton )
 		--END FILE LIST

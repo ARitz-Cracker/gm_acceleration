@@ -19,7 +19,11 @@ Car.LifterFlyMaxs = Vector(380/2,285/2,140)
 Car.LifterFlyMins = Vector(380/-2,285/-2,-20)
 
 function TOOL:DoThing(ent,add)
-	local lifter = Car.GetPitstop(self:GetOwner()).Lifter
+	local ps = Car.GetPitstop(self:GetOwner())
+	local lifter
+	if IsValid(ps) then
+		lifter = ps:GetLifter()
+	end
 	if ( not IsValid( ent ) or ent == lifter ) then return false end
 	--Car.Msgs.PitstopMsgs.NoBuild
 	
@@ -31,6 +35,7 @@ function TOOL:DoThing(ent,add)
 		return false
 	end
 	if self.ClassWhitelist[ent:GetClass()] then
+		Car.BuildChanges = true
 		if CLIENT then return true end
 	
 		if add then
@@ -71,7 +76,11 @@ function TOOL:Think()
 end
 
 function TOOL:Reload( trace )
-	local lifter = Car.GetPitstop(self:GetOwner()).Lifter
+	local ps = Car.GetPitstop(self:GetOwner())
+	local lifter
+	if IsValid(ps) then
+		lifter = ps:GetLifter()
+	end
 	if ( not IsValid( lifter )) then return false end
 	for k,v in ipairs(lifter:GetChildren()) do
 		v:SetParent()

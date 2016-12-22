@@ -15,3 +15,11 @@ ENT.CarFrozenEnt = true
 
 ENT.AddMaxs = Vector(100,100,350)
 ENT.AddMins = Vector(-100,-100,0)
+
+function ENT:SetupDataTables()
+
+	--self:NetworkVar( "Bool", 0, "Barrier" )
+	self:NetworkVar( "Entity", 0, "Driver" )
+	self:NetworkVar( "Entity", 1, "Lifter" )
+
+end

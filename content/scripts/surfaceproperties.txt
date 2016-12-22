@@ -1699,7 +1699,7 @@
 //Acceleration Gamemode
 "car_tire"
 {
-	"base"			"rubber"
+//	"base"			"rubber"
 
 	"bulletimpact"	"Rubber_Tire.BulletImpact"
 	"impacthard"	"Rubber_Tire.ImpactHard"

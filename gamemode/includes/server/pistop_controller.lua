@@ -64,6 +64,11 @@ local function GetPropList(ent,ply)
 			end
 			a.Col = v:GetColor() 
 			--a.mat = 
+			if class == "sent_arc_wheel" then
+				a.Dir = v.Direction
+				a.SDir = v.SteerDirection
+			end
+			
 			properties[class][#properties[class] + 1] = a
 			--Use WorldToLocal relative to lifter for positions
 		else
@@ -167,6 +172,10 @@ local function LoadPropList(properties,ply)
 				ent:SetParent(lifter)
 				ent:Spawn()
 				ent:SetCollisionGroup( COLLISION_GROUP_WORLD )
+				if class == "sent_arc_wheel" then
+					ent.Direction = tonumber(a.Dir) or 1
+					ent.SteerDirection = tonumber(a.SDir) or 1
+				end
 				ent.Ply = ply
 			else
 				ARCLib.NotifyPlayer(ply,ARCLib.PlaceholderReplace(Car.Msgs.PitstopMsgs.ModelBad,{MODEL=a.Mod}), NOTIFY_ERROR, 6,true)
@@ -229,9 +238,19 @@ net.Receive("car_pitcontrol_save",function(msglen,ply)
 end)
 
 net.Receive("car_pitcontrol_deploy",function(len,ply)
-	local lifter = Car.GetPitstop(ply).Lifter
+	local ps = Car.GetPitstop(ply)
+	local lifter = ps.Lifter
 	if not IsValid(lifter) then
-		ARCLib.NotifyPlayer(ply,Car.Msgs.PitstopMsgs.NoBuild, NOTIFY_ERROR, 5,true)
+		if not IsValid(ps) then
+			ARCLib.NotifyPlayer(ply,Car.Msgs.PitstopMsgs.NoPitstop, NOTIFY_ERROR, 5,true)
+		else
+			local car = Car.GetCar(ply)
+			if IsValid(car) then
+				car:Remove()
+			end
+			ps:CreateLifter()
+			ps:EnableBarrier(true)
+		end
 		return
 	end
 	local props = GetPropList(true,ply)
@@ -243,5 +262,6 @@ net.Receive("car_pitcontrol_deploy",function(len,ply)
 		ent:SetDriver(ply)
 		ent.CarData = lifter.CarData
 		ent:Spawn()
+		ps:EnableBarrier(false)
 	end
 end)

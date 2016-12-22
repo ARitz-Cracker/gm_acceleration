@@ -12,7 +12,17 @@
 function Car.GetPitstop(ply)
 	local result = NULL
 	for k,v in ipairs(ents.FindByClass("sent_arc_pitstop")) do
-		if v.Player == ply then
+		if v:GetDriver() == ply then
+			result = v
+			break
+		end
+	end
+	return result
+end
+function Car.GetCar(ply)
+	local result = NULL
+	for k,v in ipairs(ents.FindByClass("sent_arc_car")) do
+		if v:GetDriver() == ply then
 			result = v
 			break
 		end

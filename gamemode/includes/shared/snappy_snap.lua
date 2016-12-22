@@ -94,8 +94,8 @@ hook.Add("Think","Acceleration Snappy",function()
 				local lifter
 				if sanpLifter:GetBool() then
 					local pit = Car.GetPitstop(LocalPlayer())
-					if IsValid(pit) and IsValid(pit.Lifter) then
-						lifter = pit.Lifter
+					if IsValid(pit) then
+						lifter = pit:GetLifter()
 					end
 				end
 				Car.SnappySnap(clientsideProp,ent,sanpVar:GetFloat(),sanpAng:GetFloat(),Entity(sanpEnt:GetInt()),sanpX:GetBool(),sanpY:GetBool(),sanpZ:GetBool(),lifter)
@@ -113,7 +113,11 @@ end)
 --Not part of the snapper, but still a tool thing
 
 hook.Add( "PreDrawHalos", "AddHalos", function()
-	local lift = Car.GetPitstop(LocalPlayer()).Lifter
+	local ps = Car.GetPitstop(LocalPlayer())
+	local lift
+	if IsValid(ps) then
+		lift = ps:GetLifter()
+	end
 	if IsValid(lift) then
 		halo.Add( lift:GetChildren(), Color( 255, 0, 0, 255 ), 5, 5, 10 )
 	end

@@ -193,15 +193,15 @@ end
 function ENT:Draw()
 	--self:UpdatePoints() -- TODO: Only update points if entity has been moved
 	--self:DrawModel()
-	
-	if IsValid(self.Lifter) then
-		local linepoint = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*100
-		local linepoint2 = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*70 + self.Lifter:GetAngles():Right()*10
-		local linepoint3 = self.Lifter:GetPos() + self.Lifter:GetAngles():Forward()*70 + self.Lifter:GetAngles():Right()*-10
-		render.DrawLine( self.Lifter:GetPos(), linepoint, color_red, true )
+	lifter = self:GetLifter()
+	if IsValid(lifter) then
+		local linepoint = lifter:GetPos() + lifter:GetAngles():Forward()*100
+		local linepoint2 = lifter:GetPos() + lifter:GetAngles():Forward()*70 + lifter:GetAngles():Right()*10
+		local linepoint3 = lifter:GetPos() + lifter:GetAngles():Forward()*70 + lifter:GetAngles():Right()*-10
+		render.DrawLine( lifter:GetPos(), linepoint, color_red, true )
 		render.DrawLine( linepoint, linepoint2, color_red, true )	
 		render.DrawLine( linepoint, linepoint3, color_red, true )			
-		render.DrawWireframeBox( self.Lifter:GetPos(),self.Lifter:GetAngles(), Car.LifterCarMins, Car.LifterCarMaxs, color_red, true ) 
+		render.DrawWireframeBox( lifter:GetPos(),lifter:GetAngles(), Car.LifterCarMins, Car.LifterCarMaxs, color_red, true ) 
 	end
 end
 local color_red = Color(255,0,0,255)
@@ -238,7 +238,5 @@ net.Receive("car_pit_enable",function()
 	ent:UpdatePoints()
 	if IsValid(ent) then
 		ent:EnableBarrier(net.ReadBool())
-		ent.Player = net.ReadEntity()
-		ent.Lifter = net.ReadEntity()
 	end
 end)

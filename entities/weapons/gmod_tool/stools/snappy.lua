@@ -24,8 +24,8 @@ function TOOL:LeftClick( trace )
 	local lifter
 	if self:GetClientNumber( "lifter" ) != 0 then
 		local pit = Car.GetPitstop(self:GetOwner())
-		if IsValid(pit) and IsValid(pit.Lifter) then
-			lifter = pit.Lifter
+		if IsValid(pit) then
+			lifter = pit:GetLifter()
 		end
 	end
 	Car.SnappySnap(ent, ent, self:GetClientNumber( "snappos" ), self:GetClientNumber( "snapang" ), Entity(self:GetClientNumber( "entity" )), self:GetClientNumber( "usex" ) != 0, self:GetClientNumber( "usey" ) != 0, self:GetClientNumber( "usez" ) != 0,lifter)
@@ -47,7 +47,7 @@ function TOOL:Think()
 end
 
 function TOOL:Reload( trace )
-	if not CLIENT then return false end
+	if not CLIENT or not IsFirstTimePredicted() then return false end
 	GetConVar( "snappy_entity" ):SetInt( -1 )
 	notification.AddLegacy(Car.Msgs.tool.snappy.ent_reset,NOTIFY_GENERIC,10) 
 	LocalPlayer():EmitSound("ambient/water/drip"..math.random(1, 4)..".wav" )
@@ -57,7 +57,7 @@ end
 
 function TOOL:Holster()
 	if SERVER then
-		self:GetOwner():SendLua("Car.HoldingSnapTool = false")
+		self:GetOwner():SendLua("Car.HoldingSnapTool = false") -- Yeah, I'm lazy sometimes. So what? ._. 
 	end
 end
 

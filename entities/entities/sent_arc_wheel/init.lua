@@ -20,14 +20,42 @@ function ENT:Initialize()
 		self.phys:Wake()
 		self.phys:SetMaterial( "jeeptire" ) 
 	end
-	--self:SetUseType(SIMPLE_USE)
+	self:SetUseType(ONOFF_USE)
 	--self:SetTrigger( true ) 
 	self.CollidePositions = {}
 	if !self.WheelAxis then
 		self:SetWheelAxis("y")
 	end
 	self.Direction = 1
+	self.SteerDirection = 0
 	self.Speed = vector_origin
+	self.Car = NULL
+	self.SteerAng = 0
+	self:SetTrigger(true)
+end
+
+function ENT:GetCar()
+	return self.Car
+end
+
+function ENT:SetCar(car)
+	self.Car = car
+	self.SteerAng = 0
+end
+
+function ENT:SetSteerAngle(ang)
+	if not IsValid(self.Car) then return end
+	ang = ang * self.SteerDirection
+	if (ang == 0 and self.SteerAng == 0) then return end
+	
+	local diff = ang - self.SteerAng
+	local angles = self:GetAngles()
+	angles:RotateAroundAxis( self.Car:GetUp(), diff) 
+	refpoint = ent:OBBCenter()
+	local pos = self:LocalToWorld(refpoint)
+	self:SetAngles(angles)
+	self:SetPos(self:GetPos()+(pos-self:LocalToWorld(refpoint)))
+	self.SteerAng = ang
 end
 
 function ENT:EnableSki()
@@ -154,6 +182,9 @@ function ENT:Think()
 	net.WriteEntity(self)
 	net.WriteTable(self.CollidePositions)
 	net.Broadcast()
+	
+	
+
 --	self:NextThink(CurTime())
 --	return true
 end
@@ -176,7 +207,10 @@ end
 
 function ENT:PhysicsCollide( data, phys )
 	local pos = self.phys:WorldToLocal(data.HitPos)--:Normalize()
-	local correctedPos = pos:GetNormalized()*self.WheelMoveAxis*(self.Radius+2.2) + pos*self.WheelCutAxis
+	
+	local pos2 = pos*self.WheelMoveAxis
+	pos2:Normalize()
+	local correctedPos = pos2*(self.Radius+1) + pos*self.WheelCutAxis
 	
 	
 	if not self.CollidePositions[data.HitEntity] then
@@ -241,46 +275,62 @@ function ENT:PhysicsUpdate( phys ) --MAYBE: use PhysicsSimulate instead??
 			if isolatedSpeed:LengthSqr() > 0.2 then
 				phys:ApplyForceOffset( (phys:GetMass() * isolatedSpeed*-diff*self.Friction)/len, hitPoint )
 			end
-			--[[
+			--[
 			if wheelForce then
 				local speed = wheelForce:Cross( hitPoint - phys:LocalToWorld(phys:GetMassCenter()) )
 				phys:ApplyForceOffset( speed/len*diff, hitPoint ) -- TODO: Change back to hitPoint once stability issues are resolved
 			end
-			]]
+			--]]
 		end
 	end
 	
 	--Temporary "Fix" until above commented out code is fixed
+	--[[
 	avgHitPoint = avgHitPoint / len
 	if wheelForce then
 		local speed = wheelForce:Cross( avgHitPoint - phys:LocalToWorld(phys:GetMassCenter()) )
 		phys:ApplyForceOffset( speed*diff, avgHitPoint )
 	end
+	]]
 end
 
-function ENT:Use(activator, caller, type, value)
+function ENT:Use(activator, caller, toggle, value)
 	if activator != self.Ply then return end
-	--if not IsValid(Car.GetPitstop(activator).Lifter) then return end
-	if math.abs(self:GetAngles().r) > 90 then
-		local welds = {}
-		for k,v in ipairs(constraint.GetTable(self)) do
-			if v.Type == "Weld" then
-				welds[#welds + 1] = {v.Ent1,v.Ent2,v.Bone1,v.Bone2,v.forcelimit,v.nocollide,false}
+	if toggle == 1 then
+		self.UseStartTime = CurTime()
+	else
+		if not IsValid(Car.GetPitstop(activator).Lifter) then return end
+			if CurTime() - self.UseStartTime < 0.5 then
+			if math.abs(self:GetAngles().r) > 90 then
+				local welds = {}
+				for k,v in ipairs(constraint.GetTable(self)) do
+					if v.Type == "Weld" then
+						welds[#welds + 1] = {v.Ent1,v.Ent2,v.Bone1,v.Bone2,v.forcelimit,v.nocollide,false}
+					end
+				end
+				constraint.RemoveConstraints( self, "Weld") 
+				
+				
+				local ang = self:GetAngles()
+				ang.r = ang.r + 180
+				ang.y = ang.y + 180
+				self:SetAngles(ang)
+				for i=1,#welds do
+					constraint.Weld(unpack(welds[i]))
+				end
 			end
-		end
-		constraint.RemoveConstraints( self, "Weld") 
+			if self.Direction == 1 then
+				self.Direction = -1
+			elseif self.Direction == -1 then
+				self.Direction = 0
+			elseif self.Direction == 0 then
+				self.Direction = 1
+			end
+			self:DoDirectionEffect()
+		else
 		
-		
-		local ang = self:GetAngles()
-		ang.r = ang.r + 180
-		ang.y = ang.y + 180
-		self:SetAngles(ang)
-		for i=1,#welds do
-			constraint.Weld(unpack(welds[i]))
 		end
 	end
-	self.Direction = self.Direction * -1
-	self:DoDirectionEffect()
 end
 
 function ENT:DoDirectionEffect() -- Copied from gmod_wheel
@@ -289,7 +339,9 @@ function ENT:DoDirectionEffect() -- Copied from gmod_wheel
 		effectdata:SetOrigin( (self:OBBMaxs()-self:OBBMins())*self.WheelCutAxis*0.55 )
 		effectdata:SetEntity( self.Entity )
 		effectdata:SetScale( self.Direction )
-
-	util.Effect( "wheel_indicator", effectdata, true, true )
-
+	if self.Direction == 0 then
+		util.Effect( "wheel_indicator_nodir", effectdata, true, true )
+	else
+		util.Effect( "wheel_indicator", effectdata, true, true )
+	end
 end

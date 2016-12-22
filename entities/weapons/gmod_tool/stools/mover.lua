@@ -20,7 +20,11 @@ function TOOL:LeftClick( trace )
 	local ent = trace.Entity
 	if ( not IsValid( ent ) ) then return false end
 	-- TODO: MOVE
-	local lifter = Car.GetPitstop(self:GetOwner()).Lifter
+	local ps = Car.GetPitstop(self:GetOwner())
+	local lifter
+	if IsValid(ps) then
+		lifter = ps:GetLifter()
+	end
 	local movepos = Vector(self:GetClientNumber( "movex" ),self:GetClientNumber( "movey" ),self:GetClientNumber( "movez" ))
 	if self:GetClientNumber( "lifter" ) != 0 and IsValid(lifter) then
 		ent:SetPos(lifter:LocalToWorld(lifter:WorldToLocal(ent:GetPos())+movepos))
@@ -38,7 +42,11 @@ function TOOL:RightClick( trace )
 	local angles = ent:GetAngles()
 	local axismode = self:GetClientNumber( "angaxis" )
 	local centermode = self:GetClientNumber( "angcenter" )
-	local lifter = Car.GetPitstop(self:GetOwner()).Lifter
+	local ps = Car.GetPitstop(self:GetOwner())
+	local lifter
+	if IsValid(ps) then
+		lifter = ps:GetLifter()
+	end
 	if not IsValid(lifter) and axismode > 3 and axismode < 7 then
 		axismode = axismode - 3
 	end

@@ -63,18 +63,22 @@ function ENT:Initialize()
 		phys:EnableDrag(true)
 		phys:SetMass(self.Mass)
 		phys:SetMaterial("metal")
+		phys:EnableMotion(false)
 	end
 	
 	for k,v in ipairs(self.Wheels) do
 		v.Ent:SetParent()
-		constraint.NoCollide( self, v.Ent, 0, 0 ) 
-		constraint.Weld( self, v.Ent, 0, 0, 0, false, false ) -- TODO: Suspension
+		v.Ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+		--constraint.NoCollide( self, v.Ent, 0, 0 ) 
+		constraint.Weld( self, v.Ent, 0, 0, 0, true, false ) -- TODO: Suspension
 		--v.Ent:EnableSki()
+		v.Ent:SetCar(self)
 	end
 	for k,v in ipairs(self.Seats) do
 		v.Ent:SetParent()
-		constraint.NoCollide( self, v.Ent, 0, 0 ) 
-		constraint.Weld( self, v.Ent, 0, 0, 0, false, false ) -- Should I parent the seat to the car instead of welding it?
+		v.Ent:SetCollisionGroup( COLLISION_GROUP_NONE )
+		--constraint.NoCollide( self, v.Ent, 0, 0 ) 
+		constraint.Weld( self, v.Ent, 0, 0, 0, true, false ) -- Should I parent the seat to the car instead of welding it?
 	end
 	self.Seats[1].Ent.AccelerationCar = self
 	if IsValid(lifter) then
@@ -204,7 +208,7 @@ hook.Add( "PlayerLeaveVehicle", "Acceleration CarEnter", function( ply, veh, rol
 end)
 
 function ENT:KeyPress(key)
-	self.CarForce = 20000
+	self.CarForce = 10000
 	self.WheelForce = self.CarForce / #self.Wheels
 	if key == IN_FORWARD then
 		if self.CSoundDecelerate then
@@ -232,12 +236,20 @@ function ENT:KeyPress(key)
 		for k,v in ipairs(self.Wheels) do
 			v.Ent:DisableSki()
 		end
+	elseif key == IN_MOVELEFT then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetSteerAngle(-30)
+		end
+	elseif key == IN_MOVERIGHT then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetSteerAngle(30)
+		end
 	end
 end
 function ENT:KeyRelease(key)
 	if key == IN_FORWARD then
 		if self.CSoundAccelerate then
-			self.CSoundAccelerate:ChangeVolume( 0, 0.1 ) 
+			self.CSoundAccelerate:ChangeVolume( 0, 0.5 ) 
 		end
 		if self.CSoundIdle then
 			self.CSoundIdle:FadeOut(0.1)
@@ -266,6 +278,14 @@ function ENT:KeyRelease(key)
 	elseif key == IN_JUMP then
 		for k,v in ipairs(self.Wheels) do
 			v.Ent:EnableSki()
+		end
+	elseif key == IN_MOVELEFT then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetSteerAngle(0)
+		end
+	elseif key == IN_MOVERIGHT then
+		for k,v in ipairs(self.Wheels) do
+			v.Ent:SetSteerAngle(0)
 		end
 	end
 end
@@ -335,6 +355,12 @@ function ENT:OnRemove()
 	end
 	if self.CSoundDecelerate then
 		self.CSoundDecelerate:Stop()
+	end
+	for k,v in ipairs(self.Wheels) do
+		v.Ent:Remove()
+	end
+	for k,v in ipairs(self.Seats) do
+		v.Ent:Remove()
 	end
 end
 
