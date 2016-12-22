@@ -328,7 +328,17 @@ function ENT:Use(activator, caller, toggle, value)
 			end
 			self:DoDirectionEffect()
 		else
-		
+			if self.SteerDirection == 1 then
+				self.SteerDirection = -1
+			elseif self.SteerDirection == -1 then
+				self.SteerDirection = 0
+			elseif self.SteerDirection == 0 then
+				self.SteerDirection = 1
+			end
+			local effectdata = EffectData()
+				effectdata:SetEntity( self.Entity )
+				effectdata:SetScale( self.SteerDirection )
+				util.Effect( "wheel_indicator_steer", effectdata, true, true )
 		end
 	end
 end
