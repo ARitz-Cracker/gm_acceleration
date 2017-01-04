@@ -36,6 +36,8 @@ hook.Add("CanTool","willox pls fix",function( ply, tr, tool )
 end)
 ]]
 hook.Add("CanTool","Acceleration ToolsOnlyInPitstop",function( ply, tr, tool )
+	if tool == "checkpoint" and ply:IsSuperAdmin() then return end -- TODO: Proper permissions
+
 	local inPitstop = true
 	local pitstop = Car.GetPitstop(ply)
 	if not IsValid(pitstop) then

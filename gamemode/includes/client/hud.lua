@@ -20,9 +20,9 @@ local textColor = Color(255,255,255,255)
 local outlineColor = Color(0,0,0,255)
 hook.Add("HUDPaint", "Acceleration", function()
 	if !LocalPlayer() then return end
+	local halfScrH = ScrH()/2
+	local halfScrW = ScrW()/2
 	if Car.Transform > 0 and Car.Transform < 5 then
-		local halfScrH = ScrH()/2
-		local halfScrW = ScrW()/2
 		local mul = math.sin(SysTime()*math.pi*4)
 		local size = mul*50 + 462
 
@@ -33,6 +33,8 @@ hook.Add("HUDPaint", "Acceleration", function()
 		surface.DrawTexturedRectRotated( halfScrW, halfScrH-40, size, size, math.sin(SysTime()*math.pi*2)*5 ) 
 		draw.SimpleTextOutlined( Car.Msgs.HudMsg.Transform, "AccelerationBig", halfScrW, halfScrH + 210, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, outlineColor ) 
 	end
+	--draw.SimpleTextOutlined( "Next race", "Trebuchet24", halfScrW, 20, textColor, TEXT_ALIGN_CENTER, TEXT_ALIGN_CENTER, 1, outlineColor ) 
+	
 end)
 --[[
 hook.Add("HUDShouldDraw", "hidehud", function(name) --Stops certian elements of the default hud. Such as, health and ammo

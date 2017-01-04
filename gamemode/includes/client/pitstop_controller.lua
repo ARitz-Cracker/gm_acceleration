@@ -339,6 +339,7 @@ list.Set( "DesktopWindows", "AccelerationGarageControl", {
 				Derma_Message( Car.Msgs.PitstopMsgs.MassCenterWarning, "Acceleration", Car.Msgs.Generic.OK )
 				nagCenter = false
 			end
+			MsgN(pitstop)
 			if IsValid(pitstop:GetLifter()) and Car.BuildChanges then
 				Derma_Query( Car.Msgs.PitstopMsgs.SaveAsk, "Acceleration", Car.Msgs.Generic.Yes, function()
 					SaveMenu(true)

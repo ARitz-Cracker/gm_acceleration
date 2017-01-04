@@ -20,18 +20,21 @@ Car.Race.Enums.RaceStatus = {
 }
 
 Car.Race.RaceStatus = Car.Race.Enums.RaceStatus.NoCurrentRace
-Car.Race.MinimumRequired = 3
-Car.Race.TimerLength = 20 -- seconds
-Car.Race.LapCount = 0
+--Car.Race.MinimumRequired = 3
+Car.Race.MinimumRequired = 1
+Car.Race.TimerLength = 30 -- seconds
+Car.Race.LapCount = 2
 Car.Race.CheckpointCount = 0
 Car.Race.CurrentPlayers = { }
 Car.Race.QueuedPlayers = { }
+Car.Race.RaceStartTime = math.huge
 
 function Car.Race.ConfigurationLoaded( Configuration )
 
 
 end
 
+-- Internal too?
 function Car.Race.Start( )
 
 	if ( Car.Race.RaceStatus == Car.Race.Enums.RaceStatus.NoCurrentRace ) then
@@ -46,7 +49,7 @@ function Car.Race.Start( )
 		end
 		
 		Car.Race.RaceStatus = Car.Race.Enums.RaceStatus.RaceInProgress
-		
+		Car.Race.FinishingPlaces = {}
 		hook.Run( "AccelerationNewRace", Car.Race.CurrentPlayers )
 		
 	end
@@ -55,10 +58,9 @@ end
 
 function Car.Race.AddPlayerToQueue( Pl )
 
-	Car.Race.QueuedPlayers[ Pl ] = Pl
+	Car.Race.QueuedPlayers[ #Car.Race.QueuedPlayers + 1] = Pl
 	
-	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) then
-	
+	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) and not Car.Race.TimerCounting then
 		Car.Race.MinimumPlayerRequirementMet( )
 	
 	end
@@ -67,7 +69,7 @@ end
 
 function Car.Race.RemovePlayerFromQueue( Pl )
 	
-	Car.Race.QueuedPlayers[ Pl ] = nil
+	table.RemoveByValue( Car.Race.QueuedPlayers, Pl ) 
 	
 end
 
@@ -76,22 +78,32 @@ function Car.Race.MinimumPlayerRequirementMet( )
 
 	local timerShouldStart = hook.Run( "AccelerationShouldRaceStart", Car.Race.QueuedPlayers )
 	if ( timerShouldStart ~= false ) then
-	
-		timer.Simple( Car.Race.TimerLength, Car.Race.TimerCallback )
-	
+		if Car.Race.RaceStatus == Car.Race.Enums.RaceStatus.NoCurrentRace then
+			ARCLib.NotifyBroadcast(ARCLib.PlaceholderReplace(Car.Msgs.HudMsg.NewRace,{TIME=ARCLib.TimeString(Car.Race.TimerLength,Car.Msgs.Time)}),NOTIFY_GENERIC,20,true)
+			Car.Race.TimerCounting = true
+			
+			Car.Race.RaceStartTime = CurTime() + Car.Race.TimerLength
+			--timer.Simple( Car.Race.TimerLength, Car.Race.TimerCallback )
+		end
 	end
 	
 end
 
 -- INTERNAL.
 function Car.Race.TimerCallback( )
-
-	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) then
-	
+	local tab = Car.Checkpoints.GetTable()
+	Car.Race.TimerCounting = false
+	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired and istable(tab)) then
+		
+		ARCLib.NotifyBroadcast("The race has started! (No fancy countdown yet JUST GO!!)",NOTIFY_GENERIC,20,true)
+		Car.Race.CheckpointCount = #tab
 		Car.Race.Start( )
 		
 	else
-		
+		if isstring(tab) then
+			ARCLib.NotifyBroadcast(tab, NOTIFY_ERROR, 5,true)
+		end
+		ARCLib.NotifyBroadcast(Car.Msgs.HudMsg.Cancelled,NOTIFY_GENERIC,20,true)
 		hook.Run( "AccelerationRaceCanceled", Car.Race.QueuedPlayers )
 		
 	end
@@ -102,7 +114,7 @@ end
 function Car.Race.AddPlayer( Pl )
 
 	Pl.NextCheckpoint = 1
-	Pl.LapCount = 0
+	Pl.LapCurrent = 0
 	Pl.IsRacing = true
 
 end
@@ -111,7 +123,7 @@ end
 function Car.Race.RemovePlayer( Pl )
 
 	Pl.NextCheckpoint = -1
-	Pl.LapCount = 0
+	Pl.LapCurrent = 0
 	Pl.IsRacing = false
 
 end
@@ -119,7 +131,7 @@ end
 -- INTERNAL.
 function Car.Race.End( )
 
-	for k, Pl in pairs( Car.Race.CurrentPlayers ) do
+	for k, Pl in ipairs( Car.Race.CurrentPlayers ) do
 	
 		Car.Race.RemovePlayer( Pl )
 		
@@ -128,7 +140,11 @@ function Car.Race.End( )
 	hook.Run( "AccelerationEndRace", Car.Race.CurrentPlayers )
 	
 	Car.Race.CurrentPlayers = { }
-
+	
+	-- Start new race after this one
+	if ( #Car.Race.QueuedPlayers >= Car.Race.MinimumRequired ) and not Car.Race.TimerCounting then
+		Car.Race.MinimumPlayerRequirementMet( )
+	end
 end
 
 -- INTERNAL.
@@ -136,7 +152,7 @@ function Car.Race.HasRaceEnded( )
 
 	for k, Pl in pairs( Car.Race.CurrentPlayers ) do
 	
-		if ( Pl.LapCount ~= Car.Race.LapCount ) then
+		if ( Pl.LapCurrent <= Car.Race.LapCount ) then
 			return false
 		end
 		
@@ -148,11 +164,18 @@ end
 
 -- INTERNAL.
 function Car.Race.Think( )
-
+	if Car.Race.RaceStartTime <= CurTime() then
+		Car.Race.TimerCallback()
+		Car.Race.RaceStartTime = math.huge
+	end
 	if ( Car.Race.RaceStatus == Car.Race.Enums.RaceStatus.RaceInProgress ) then
 	
 		if ( Car.Race.HasRaceEnded( ) ) then
 			-- Normally do cutscene logic but not implemented yet
+			for k,Pl in ipairs(Car.Race.FinishingPlaces) do
+				ARCLib.NotifyBroadcast(Pl:Nick().." - #"..k,NOTIFY_GENERIC,20,true)
+			end
+			
 			Car.Race.End( )
 			Car.Race.RaceStatus = Car.Race.Enums.RaceStatus.NoCurrentRace
 		end
@@ -165,17 +188,18 @@ end
 function Car.Race.OnPlayerCheckpoint( Pl, CheckpointID )
 
 	if ( CheckpointID == Car.Race.CheckpointCount ) then
-		Pl.LapCount = Pl.LapCount + 1
+		
 		Pl.NextCheckpoint = 1
 		
-		hook.Run( "AccelerationPlayerFinishedLap", Pl )
-		
-		if ( Pl.LapCount == Car.Race.CheckpointCount ) then
-			hook.Run( "AccelerationPlayerFinishedRace", Pl )
-		end
-		
 	else
-	
+		
+		if Pl.NextCheckpoint == 1 then
+			Pl.LapCurrent = Pl.LapCurrent + 1
+			hook.Run( "AccelerationPlayerFinishedLap", Pl )
+			if ( Pl.LapCurrent > Car.Race.LapCount ) then
+				hook.Run( "AccelerationPlayerFinishedRace", Pl )
+			end
+		end
 		--hook.Run( "AccelerationPlayerReachedCheckpoint", Pl, CheckpointID )
 		Pl.NextCheckpoint = Pl.NextCheckpoint + 1
 		
@@ -183,5 +207,12 @@ function Car.Race.OnPlayerCheckpoint( Pl, CheckpointID )
 
 end
 
-hook.Add( "Think", Car.Race.Think )
-hook.Add( "AccelerationPlayerCheckpointPassed", Car.Race.OnPlayerCheckpoint )
+function Car.Race.OnPlayerFinishedRace( Pl )
+	local i = #Car.Race.FinishingPlaces + 1
+	ARCLib.NotifyBroadcast(Pl:Nick().." - #"..i,NOTIFY_GENERIC,20,true)
+	Car.Race.FinishingPlaces[i] = Pl
+end
+
+hook.Add( "Think", "Car.Race.Think" ,Car.Race.Think )
+hook.Add( "AccelerationPlayerCheckpointPassed" , "Car.Race.OnPlayerCheckpoint", Car.Race.OnPlayerCheckpoint )
+hook.Add( "AccelerationPlayerFinishedRace", "Car.Race.OnPlayerFinishedRace", Car.Race.OnPlayerFinishedRace )

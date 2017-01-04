@@ -70,7 +70,24 @@ function ENT:Initialize()
 		v.Ent:SetParent()
 		v.Ent:SetCollisionGroup( COLLISION_GROUP_NONE )
 		--constraint.NoCollide( self, v.Ent, 0, 0 ) 
-		constraint.Weld( self, v.Ent, 0, 0, 0, true, false ) -- TODO: Suspension
+		
+		
+		if v.Ent.SteerDirection == 0 then
+			constraint.Weld( self, v.Ent, 0, 0, 0, true, false ) -- TODO: Suspension
+		else
+			local LPos1 = v.Ent:WorldToLocal( v.Ent:LocalToWorld(v.Ent:OBBCenter()) + self:GetUp() )
+			local LPos2 = self:WorldToLocal( v.Ent:LocalToWorld(v.Ent:OBBCenter()) )
+			local motor, axis = constraint.Motor( v.Ent, self, 0, 0, LPos1, LPos2, 10, 100, 0, 1, 0, ply, 0 ) -- Motor is used here so we can "properly" turn the wheel later
+			v.Ent.Motor = motor
+			
+			local pos = (v.Ent:OBBMaxs()-v.Ent:OBBMins())*0.8*v.Ent.WheelCutAxis
+			local pos2 = (v.Ent:OBBMaxs()-v.Ent:OBBMins())*-0.8*v.Ent.WheelCutAxis
+			
+			local constant = 100000
+			constraint.Elastic( v.Ent, self, 0, 0, pos,self:WorldToLocal(v.Ent:LocalToWorld(pos)), constant, 1000, 1, nil, 1, true )
+			constraint.Elastic( v.Ent, self, 0, 0, pos2,self:WorldToLocal(v.Ent:LocalToWorld(pos2)), constant, 1000, 1, nil, 1, true ) 			
+			--
+		end
 		--v.Ent:EnableSki()
 		v.Ent:SetCar(self)
 	end
@@ -208,9 +225,19 @@ hook.Add( "PlayerLeaveVehicle", "Acceleration CarEnter", function( ply, veh, rol
 end)
 
 function ENT:KeyPress(key)
-	self.CarForce = 10000
-	self.WheelForce = self.CarForce / #self.Wheels
-	if key == IN_FORWARD then
+	self.CarForce = 17000
+	
+	local drivewheels = 0
+	for k,v in ipairs(self.Wheels) do
+		if v.Ent.Direction != 0 then
+			drivewheels = drivewheels + 1
+		end
+	end
+	self.WheelForce = self.CarForce / drivewheels
+	if key == IN_BACK then
+		self.WheelForce = self.WheelForce * -1
+	end
+	if key == IN_FORWARD or key == IN_BACK then
 		if self.CSoundDecelerate then
 			self.CSoundDecelerate:FadeOut(0.3)
 		end
@@ -231,7 +258,7 @@ function ENT:KeyPress(key)
 			v.Ent:SetForce(self.WheelForce)
 		end
 		self.SAccelerate = true
-		
+		self.DoingForce = true
 	elseif key == IN_JUMP then
 		for k,v in ipairs(self.Wheels) do
 			v.Ent:DisableSki()
@@ -247,7 +274,7 @@ function ENT:KeyPress(key)
 	end
 end
 function ENT:KeyRelease(key)
-	if key == IN_FORWARD then
+	if key == IN_FORWARD or key == IN_BACK then
 		if self.CSoundAccelerate then
 			self.CSoundAccelerate:ChangeVolume( 0, 0.5 ) 
 		end
@@ -275,6 +302,7 @@ function ENT:KeyRelease(key)
 			v.Ent:SetForce(0)
 		end
 		self.SAccelerate = false
+		self.DoingForce = false
 	elseif key == IN_JUMP then
 		for k,v in ipairs(self.Wheels) do
 			v.Ent:EnableSki()
@@ -322,11 +350,33 @@ function ENT:DisableCar()
 end
 
 function ENT:Think()
+	--self.MaxSpeed = 1500
+	self.MaxSpeed = 1500
+	self.Leeway = self.MaxSpeed*0.06
+	--self.MaxSpeed = self.MaxSpeed - (self.Leeway/2)
 	if self.EngineOn then
 		local speed = self:GetVelocity():Length()
 		if self.SAccelerate then
-			local maxGearSpeed = self.MaxSpeed/self.CarData.SoundGears
-			self.CSoundAccelerate:ChangePitch( self.CarData.SoundAcceleratePitchStart + (speed%(maxGearSpeed))/maxGearSpeed*(self.CarData.SoundAcceleratePitchEnd-self.CarData.SoundAcceleratePitchStart), 0.3 ) 
+			if speed >= self.MaxSpeed then
+				
+				local over = (((speed - self.MaxSpeed) - self.Leeway )*-1)/self.Leeway 
+				if over < 0 then over = 0 end
+				MsgN(over)
+				for k,v in ipairs(self.Wheels) do
+					v.Ent:SetForce(self.WheelForce*over)
+				end
+				self.DoingForce = false
+				self.CSoundAccelerate:ChangePitch( self.CarData.SoundAcceleratePitchEnd+2, 0.3 ) 
+			else
+				if not self.DoingForce then
+					for k,v in ipairs(self.Wheels) do
+						v.Ent:SetForce(self.WheelForce)
+					end
+					self.DoingForce = true
+				end
+				local maxGearSpeed = self.MaxSpeed/self.CarData.SoundGears
+				self.CSoundAccelerate:ChangePitch( self.CarData.SoundAcceleratePitchStart + (speed%(maxGearSpeed))/maxGearSpeed*(self.CarData.SoundAcceleratePitchEnd-self.CarData.SoundAcceleratePitchStart), 0.3 ) 
+			end
 		else
 			if speed > 120 then
 				self.CSoundDecelerate:ChangePitch( self.CarData.SoundDeceleratePitchStart + (((speed/self.MaxSpeed)*-1) + 1)*(self.CarData.SoundDeceleratePitchEnd-self.CarData.SoundDeceleratePitchStart), 0.3 )

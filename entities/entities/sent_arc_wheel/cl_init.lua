@@ -26,6 +26,7 @@ color_green = Color(0,255,0,255)
 color_blue = Color(0,0,255,255)
 
 function ENT:Draw()
+	if not self.WheelCutAxis then return end
 	self.Drawing = true
 	if self.UpdateModelPos then -- Shitty hack for when entity stops being in PVS
 		self.SkiWheel:SetPos(self:GetPos())
@@ -61,6 +62,7 @@ function ENT:Draw()
 			
 		end
 	end
+	render.DrawLine( self:GetPos(), self:LocalToWorld((self:OBBMaxs()-self:OBBMins())*0.5*self.WheelCutAxis), color_red, false )
 end
 function ENT:OnRemove()
 	if self.SkiWheel then

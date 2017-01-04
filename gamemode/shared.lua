@@ -15,14 +15,13 @@ GM.Name = "Acceleration"
 GM.Author = "BlueStone Technological Enterprises Inc."
 GM.Email = "info@bste.ca"
 GM.Website = "www.bste.ca"
-GM.Update = "November 25th 2016"
-GM.Version = "0.0.1"
+GM.Update = "January 3rd 2016"
+GM.Version = "0.4.0"
 
 GM.TeamBased = true
 
 
 Car = Car or {}
-Car.DataFolder = "acceleration/"
 
 function GM:CreateTeams()
 	

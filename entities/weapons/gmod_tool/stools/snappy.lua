@@ -4,7 +4,7 @@ TOOL.Name = "#tool.snappy.name"
 
 TOOL.ClientConVar[ "snappos" ] = "20"
 TOOL.ClientConVar[ "snapang" ] = "30"
-TOOL.ClientConVar[ "lifter" ] = "0"
+TOOL.ClientConVar[ "lifter" ] = "1"
 TOOL.ClientConVar[ "persist" ] = "0"
 TOOL.ClientConVar[ "usex" ] = "0"
 TOOL.ClientConVar[ "usey" ] = "0"

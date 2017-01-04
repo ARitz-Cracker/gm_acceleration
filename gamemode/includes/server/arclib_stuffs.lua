@@ -22,6 +22,21 @@ Car.Commands = {
         adminonly = false,
         hidden = true
     },
+    ["race"] = {
+        command = function(ply,args) 
+            if args[1] == "join" then
+				Car.Race.AddPlayerToQueue( ply )
+			elseif args[1] == "unjoin" then
+				Car.Race.RemovePlayerFromQueue( ply )
+			else
+			
+			end
+        end, 
+        usage = " <join|unjoin>",
+        description = "Joins the race",
+        adminonly = false,
+        hidden = true
+    },
   -- More command here
 }
 ARCLib.AddSettingConsoleCommands("Car") -- Adds the commands the admin GUI uses to change the settings
@@ -32,11 +47,17 @@ function Car.Load()
 		Car.Msg("Created Folder: "..Car.Dir)
 		file.CreateDir(Car.Dir)
 	end
+	--
 	if !file.IsDir( Car.Dir,"DATA" ) then
 		Car.Msg("CRITICAL ERROR! FAILED TO CREATE ROOT FOLDER!")
 		Car.Msg("LOADING FALIURE!")
 		return
 	end
+	if !file.IsDir( Car.Dir.."/checkpoint","DATA" ) then
+		Car.Msg("Created Folder: "..Car.Dir.."/checkpoint")
+		file.CreateDir(Car.Dir.."/checkpoint")
+	end
+	
 	ARCLib.LoadDefaultLanguages("Car","https://raw.githubusercontent.com/ARitz-Cracker/aritzcracker-addon-translations/master/default_gm_acceleration_languages.json",function(langChoices)
 		ARCLib.AddonAddSettingMultichoice("Car","language",langChoices or {})
 		ARCLib.AddonLoadSettings("Car",{})

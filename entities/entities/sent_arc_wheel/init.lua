@@ -31,7 +31,7 @@ function ENT:Initialize()
 	self.Speed = vector_origin
 	self.Car = NULL
 	self.SteerAng = 0
-	self:SetTrigger(true)
+	--self:SetTrigger(true)
 end
 
 function ENT:GetCar()
@@ -45,17 +45,31 @@ end
 
 function ENT:SetSteerAngle(ang)
 	if not IsValid(self.Car) then return end
+	if not IsValid(self.Motor) then return end
 	ang = ang * self.SteerDirection
-	if (ang == 0 and self.SteerAng == 0) then return end
 	
+	
+	--constraint.Weld( self, v.Ent, 0, 0, 0, true, false ) -- TODO: Suspension
+	
+	
+	local Speed = ang * -2
+	
+	self.Motor:Fire( "Scale", Speed, 0 )
+	self.Motor:GetTable().forcescale = Speed
+	self.Motor:Fire( "Activate", "" , 0 )
+	
+	--[[
+	if (ang == 0 and self.SteerAng == 0) then return end
 	local diff = ang - self.SteerAng
 	local angles = self:GetAngles()
 	angles:RotateAroundAxis( self.Car:GetUp(), diff) 
-	refpoint = ent:OBBCenter()
+	refpoint = self:OBBCenter()
+	
 	local pos = self:LocalToWorld(refpoint)
 	self:SetAngles(angles)
 	self:SetPos(self:GetPos()+(pos-self:LocalToWorld(refpoint)))
 	self.SteerAng = ang
+	]]
 end
 
 function ENT:EnableSki()
@@ -245,7 +259,7 @@ function ENT:SetForce(speed)
 	if speed == 0 then
 		self.Speed = vector_origin
 	else
-		self.Speed = Vector(speed,speed,speed)*self.WheelCutAxis
+		self.Speed = self.WheelCutAxis*speed
 		if self.phys:IsAsleep() then
 			self.phys:Wake()
 		end
@@ -299,7 +313,8 @@ function ENT:Use(activator, caller, toggle, value)
 	if toggle == 1 then
 		self.UseStartTime = CurTime()
 	else
-		if not IsValid(Car.GetPitstop(activator).Lifter) then return end
+		local lifter = Car.GetPitstop(activator).Lifter
+		if not IsValid(lifter) then return end
 			if CurTime() - self.UseStartTime < 0.5 then
 			if math.abs(self:GetAngles().r) > 90 then
 				local welds = {}
@@ -338,6 +353,7 @@ function ENT:Use(activator, caller, toggle, value)
 			local effectdata = EffectData()
 				effectdata:SetEntity( self.Entity )
 				effectdata:SetScale( self.SteerDirection )
+				effectdata:SetNormal( lifter:GetUp() )
 				util.Effect( "wheel_indicator_steer", effectdata, true, true )
 		end
 	end

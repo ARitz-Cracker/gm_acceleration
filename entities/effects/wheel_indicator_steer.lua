@@ -15,7 +15,11 @@ function EFFECT:Init( data )
 	self.Mins = -self.Maxs
 	self:SetCollisionBounds( self.Mins, self.Maxs )
 	self.StartTime = CurTime()
-	self.EndTime = CurTime() + 2
+	if self.Dir == 0 then
+		self.EndTime = CurTime() + 1
+	else
+		self.EndTime = CurTime() + 4
+	end
 end
 
 function EFFECT:Think()
@@ -30,15 +34,28 @@ function EFFECT:Think()
 	return true
 end
 local color_blue = Color(0,0,255,255)
+local arrowHUDs = {}
 function EFFECT:Render()
 
 	if ( !IsValid( self.Wheel ) ) then return end
 	if ( !self.Pos ) then return end
 	render.DrawWireframeBox( self.Pos, self.Ang, self.Mins, self.Maxs, color_blue, false ) 
+	local a = self.Pos:ToScreen()
 	if self.Mul < 0 then
-		render.SetMaterial(ARCLib.GetWebIcon32("arrow_left"))
+		a.mat = ARCLib.GetWebIcon32("arrow_left")
 	else
-		render.SetMaterial(ARCLib.GetWebIcon32("arrow_right"))
-	end
-	render.DrawSprite( self.Pos, 8, 8, color_white )
+		a.mat = ARCLib.GetWebIcon32("arrow_right")
+	end 
+	table.insert(arrowHUDs,a)
 end
+
+hook.Add("HUDPaint","wheel_indicator_steer",function()
+	local len = #arrowHUDs
+	--MsgN("aa")
+	for i=1,len do
+		surface.SetDrawColor(color_white)
+		surface.SetMaterial(arrowHUDs[i].mat)
+		surface.DrawTexturedRect(arrowHUDs[i].x - 16, arrowHUDs[i].y - 16, 32, 32)
+		arrowHUDs[i] = nil
+	end
+end)

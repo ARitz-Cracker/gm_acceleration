@@ -11,7 +11,7 @@
 --------------------------------------------------------------------------------------]]--
 
 Car.CheckpointEntityName = "sent_acc_checkpoint"
-Car.CheckpointDataFolderName = Car.DataFolder .. "checkpoint/"
+Car.CheckpointDataFolderName = Car.Dir .. "checkpoint/"
 
 Car.Checkpoints = { }
 
@@ -19,11 +19,53 @@ function Car.LoadCheckpointConfiguration( )
 
 	local configFile = file.Read( Car.CheckpointDataFolderName .. game.GetMap() .. ".txt" )
 	if ( configFile ) then
-		return util.JSONToTable( configFile )
+		return util.JSONToTable( configFile ) or false
 	end
 	
 	return false
 	
+end
+
+function Car.SaveCheckpointConfiguration( data )
+	file.Write( Car.CheckpointDataFolderName .. game.GetMap() .. ".txt", util.TableToJSON(data))
+end
+
+function Car.Checkpoints.GetTable()
+	local tab = {}
+	for k,v in ipairs(ents.FindByClass("sent_acc_checkpoint")) do
+		local i = v.CheckpointID
+		if i > 0 then
+			if not tab[i] then
+				tab[i] = {}
+			end
+			local ii = 1
+			if v.IsSlave then
+				ii = 2
+			end
+			tab[i][ii] = v
+			--v:SetSlave( false )
+		end
+	end
+	if not table.IsSequential(tab) then
+		return Car.Msgs.tool.checkpoint.InvalidOrder
+	end
+	local aOK = true
+	--CarFrozenEnt
+	for k,v in ipairs(tab) do
+		if not (v[1] and v[2]) then
+			aOK = false
+			break
+		end
+	end
+	if not aOK then
+		return Car.Msgs.tool.checkpoint.InvalidPair
+	end
+	
+	for k,v in ipairs(tab) do
+		v[1].CarFrozenEnt = true
+		v[2].CarFrozenEnt = true
+	end
+	return tab
 end
 
 function Car.InitializeCheckpoints( )

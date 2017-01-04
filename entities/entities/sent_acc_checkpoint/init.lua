@@ -18,11 +18,11 @@ function ENT:Initialize()
 
 	self:SetModel( "models/props/acceleration/checkpoint.mdl" )
 	self:PhysicsInit( SOLID_VPHYSICS )
-	self:SetMoveType( MOVETYPE_NONE )
+	self:SetMoveType( MOVETYPE_VPHYSICS ) --MOVETYPE_NONE?
 	self:SetSolid( SOLID_VPHYSICS )
 	
-	self.Counterpart = NULL
-	self.CheckpointID = -1
+	self.Counterpart = self.Counterpart or NULL
+	self.CheckpointID = self.CheckpointID or -1
 	
 	self.PlayerAnglesTable = {}
 	
@@ -48,12 +48,17 @@ function ENT:CompareAng(ang,flip)
 end
 
 function ENT:Think()
-	if not IsValid(self.Counterpart) then return end
+	if self.IsSlave or not IsValid(self.Counterpart) then return end
 	for k, Pl in pairs( player.GetAll() ) do
-	
-		--if ( !Pl.IsRacing or Pl.NextCheckpoint ~= self.CheckpointID ) then continue end
-		if self:CheckPlayerPassed( Pl ) and self.Counterpart:CheckPlayerPassed( Pl ) then
-			self:OnCheckpoint( Pl )
+		if ( Pl.IsRacing and Pl.NextCheckpoint == self.CheckpointID ) then
+		
+			local res1 = self:CheckPlayerPassed( Pl )
+			local res2 = self.Counterpart:CheckPlayerPassed( Pl )
+			-- They must be called like this since if it were in an if statement and the master check evaluated to false, the salve wouldn't even be considered.
+			MsgN(tostring(res1).." "..tostring(res2))
+			if res1 and res2 then
+				self:OnCheckpoint( Pl )
+			end
 		end
 	end
 end
@@ -64,7 +69,7 @@ function ENT:SetSlave( bIsSlave )
 end
 
 function ENT:SetCounterpart( eCounterpart )
-	if eCounterpart:GetClass() != "sent_acc_checkpoint" then return end
+	if eCounterpart != NULL and eCounterpart:GetClass() != "sent_acc_checkpoint" then return end
 	self.Counterpart = eCounterpart
 	self:SetNWEntity( "Counterpart", eCounterpart)
 end

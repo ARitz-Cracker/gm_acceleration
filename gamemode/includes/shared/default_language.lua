@@ -14,6 +14,8 @@ Car.MsgsSource = {"tool"}
 Car.Msgs = Car.Msgs or {}
 Car.Msgs.HudMsg = Car.Msgs.HudMsg or {}
 Car.Msgs.HudMsg.Transform = "PRESS [JUMP] TO TRANSFORM"
+Car.Msgs.HudMsg.Cancelled = "Race has been cancelled!"
+Car.Msgs.HudMsg.NewRace = "There will be a new race in %TIME%"
 
 Car.Msgs.Generic = Car.Msgs.Generic or {}
 Car.Msgs.Generic.NewFolder = "New Folder"
@@ -114,6 +116,12 @@ Car.Msgs.tool.mover.angcenter.setting1 = "Entity origin"
 Car.Msgs.tool.mover.angcenter.setting2 = "Center of the entity's model"
 Car.Msgs.tool.mover.angcenter.setting3 = "Lifter refrence point"
 Car.Msgs.tool.mover.angcenter.setting4 = "The target position"
+
+Car.Msgs.tool.checkpoint = Car.Msgs.tool.checkpoint or {}
+Car.Msgs.tool.checkpoint.InvalidOrder = "Your race track has a gap in it somewhere! (They aren't in sequential order)"
+Car.Msgs.tool.checkpoint.InvalidPair = "You have a checkpoint post who's all lonely :("
+Car.Msgs.tool.checkpoint.Saved = "Race track saved!"
+Car.Msgs.tool.checkpoint.Placed = "Checkpoint #%NUM% placed"
 
 Car.Msgs.CommandOutput = Car.Msgs.CommandOutput or {}
 Car.Msgs.CommandOutput.SysReset = "System reset required! Please enter \"youraddon reset\""
