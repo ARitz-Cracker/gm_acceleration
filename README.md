@@ -30,7 +30,7 @@ GETTING STARTED:
 	1. Spawn your garage (Their locations will be saved in future versions)
 	2. Build your car using props
 	3. When using wheels, tap USE to change rotation direction, hold USE for 1 second to change steering direction
-	4. Use the "Assembler" tool to mark all your props, chairs, and wheels
+	4. Use the "Assembler" tool to mark all your props, chairs, and wheels. This tool will automatically weld your props
 	5. Hold down C to open garage controls
 	6. Save your car!
 	7. Deploy it
